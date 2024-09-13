@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useAuth } from "../context/AuthContext";
+import { Link } from "react-router-dom";
 
 const LoggedInScreen = () => {
   const { user, userData, updateProfile, uploadProfilePic, logout } = useAuth();
@@ -18,7 +19,7 @@ const LoggedInScreen = () => {
     }
   };
 
-  const handleProfilePicUpload = (e) => {
+  const handleProfilePicUpload = async (e) => {
     const file = e.target.files[0];
     if (file) {
       setProfilePic(file);
@@ -38,95 +39,74 @@ const LoggedInScreen = () => {
   };
 
   return (
-    <div className="flex flex-col items-center justify-center min-h-screen bg-gradient-to-b from-blue-100 to-white px-4 py-8">
-      <div className="w-full max-w-md bg-white shadow-lg rounded-lg p-8">
-      <div className="bg-red-500 text-white p-4">
-  Tailwind CSS is working!
-</div>
+    <div className="flex flex-col items-center justify-center h-screen">
+      <h1 className="text-2xl font-bold">Welcome, {userData?.name || user.email}!</h1>
 
-        
-        
-        
-        <h1 className="text-3xl font-bold text-center text-gray-800 mb-6">
-          Welcome--, {userData?.name || user.email}!
-        </h1>
-
-        {/* Profile Picture */}
-        {userData?.profilePic && (
-          <div className="flex justify-center mb-6">
-            <img
-              src={userData.profilePic}
-              alt="Profile"
-              className="w-28 h-28 rounded-full object-cover border-4 border-indigo-500 shadow-md"
-            />
-          </div>
-        )}
-
-        <div className="mb-4">
-          <label className="block text-sm font-medium text-gray-700">Name</label>
-          <input
-            type="text"
-            value={name}
-            onChange={(e) => setName(e.target.value)}
-            className="mt-2 block w-full p-3 border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
-            placeholder="Enter your name"
+      {/* Display profile picture if it exists */}
+      {userData?.profilePic && (
+        <div className="mt-4">
+          <img
+            src={userData.profilePic}
+            alt="Profile"
+            className="w-32 h-32 rounded-full object-cover"
           />
         </div>
+      )}
 
-        <div className="mb-4">
-          <label className="block text-sm font-medium text-gray-700">Phone</label>
-          <input
-            type="text"
-            value={phone}
-            onChange={(e) => setPhone(e.target.value)}
-            className="mt-2 block w-full p-3 border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
-            placeholder="Enter your phone number"
-          />
-        </div>
-
-        <div className="mb-4">
-          <label className="block text-sm font-medium text-gray-700">Role</label>
-          <select
-            value={role}
-            onChange={(e) => setRole(e.target.value)}
-            className="mt-2 block w-full p-3 border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
-          >
-            <option value="user">User</option>
-            <option value="admin">Admin</option>
-          </select>
-        </div>
-
-        <div className="mb-4">
-          <label className="block text-sm font-medium text-gray-700">Profile Picture</label>
-          <input
-            type="file"
-            onChange={handleProfilePicUpload}
-            className="mt-2 block w-full text-sm text-gray-500"
-          />
-          <button
-            onClick={handleProfilePicSubmit}
-            className="mt-4 w-full bg-blue-500 text-white p-2 rounded-md hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
-          >
-            Upload Profile Picture
-          </button>
-        </div>
-
-        <div className="space-y-4">
-          <button
-            onClick={handleUpdateProfile}
-            className="w-full bg-green-500 text-white p-3 rounded-md hover:bg-green-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500"
-          >
-            Save Profile
-          </button>
-
-          <button
-            onClick={logout}
-            className="w-full bg-red-500 text-white p-3 rounded-md hover:bg-red-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500"
-          >
-            Logout
-          </button>
-        </div>
+      <div className="mt-4">
+        <label className="block text-sm font-medium text-gray-700">Name</label>
+        <input
+          type="text"
+          value={name}
+          onChange={(e) => setName(e.target.value)}
+          className="p-2 border rounded mt-2 w-full"
+        />
       </div>
+
+      <div className="mt-4">
+        <label className="block text-sm font-medium text-gray-700">Phone</label>
+        <input
+          type="text"
+          value={phone}
+          onChange={(e) => setPhone(e.target.value)}
+          className="p-2 border rounded mt-2 w-full"
+        />
+      </div>
+
+      <div className="mt-4">
+        <label className="block text-sm font-medium text-gray-700">Role</label>
+        <select
+          value={role}
+          onChange={(e) => setRole(e.target.value)}
+          className="p-2 border rounded mt-2 w-full"
+        >
+          <option value="user">User</option>
+          <option value="admin">Admin</option>
+        </select>
+      </div>
+
+      <div className="mt-4">
+        <label className="block text-sm font-medium text-gray-700">Profile Picture</label>
+        <input type="file" onChange={handleProfilePicUpload} className="mt-2" />
+        <button onClick={handleProfilePicSubmit} className="bg-blue-500 text-white p-2 rounded mt-4">
+          Upload Profile Picture
+        </button>
+      </div>
+
+      <button onClick={handleUpdateProfile} className="bg-green-500 text-white p-2 rounded mt-4">
+        Save Profile
+      </button>
+
+      {/* Show Admin Page link if user is an admin */}
+      {role === "admin" && (
+        <Link to="/admin">
+          <button className="bg-purple-500 text-white p-2 rounded mt-4">Go to Admin Page</button>
+        </Link>
+      )}
+
+      <button onClick={logout} className="bg-red-500 text-white p-2 rounded mt-4">
+        Logout
+      </button>
     </div>
   );
 };
