@@ -6,8 +6,11 @@ import AuthForm from "./components/AuthForm";
 import CompleteSignup from "./components/CompleteSignup";
 import LoggedInScreen from "./components/LoggedInScreen";
 import AdminPage from "./pages/AdminPage";
+import GameConsole from "./pages/GameConsole";
+import MillionaireGame from "./pages/MillionaireGame";
 import AddDataFromJSON from "./components/AddDataFromJSON"; 
 import ManageQuestions from "./components/ManageQuestions";
+
 function App() {
   const { user, userData } = useAuth(); // userData contains the role
 
@@ -24,9 +27,11 @@ function App() {
             {userData?.role === "admin" && (
               <>
               <Route path="/admin" element={<AdminPage />} />
+              <Route path="/game" element={<GameConsole />} />
               <Route path="/add-data" element={<AddDataFromJSON />} />
               
               <Route path="/manageq" element={<ManageQuestions />} />
+              <Route path="/game2" element={<MillionaireGame/>}/>
 
               </>
             )}

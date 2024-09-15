@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { collection, doc, getDoc, updateDoc, setDoc } from 'firebase/firestore';
+import { collection, doc, getDoc, updateDoc } from 'firebase/firestore';
 import { db } from '../firebase'; // Import the Firestore setup
 
 const ManageQuestions = () => {
@@ -56,23 +56,6 @@ const ManageQuestions = () => {
     setEditQuestion(null); // Reset edit state
   };
 
-  // Handle selecting a question to add to `askedQuestions` collection
-  const handleSelect = async (question) => {
-    try {
-      // Convert qNo to string (or use another unique identifier like a random ID)
-      const docRef = doc(collection(db, 'askedQuestions'), String(question.qNo)); 
-  
-      // Save the selected question to Firestore
-      await setDoc(docRef, question);
-  
-      alert('Question added to askedQuestions!');
-    } catch (error) {
-      console.error('Error adding question to askedQuestions:', error);
-      alert('Failed to add question.');
-    }
-  };
-  
-
   return (
     <div className="p-4">
       <h1 className="text-xl font-bold mb-4">Manage Questions</h1>
@@ -110,16 +93,10 @@ const ManageQuestions = () => {
                 <td className="border px-4 py-2">{item.level}</td>
                 <td className="border px-4 py-2">
                   <button
-                    className="bg-green-500 text-white p-2 rounded mr-2"
+                    className="bg-green-500 text-white p-2 rounded"
                     onClick={() => handleEdit(item)}
                   >
                     Edit
-                  </button>
-                  <button
-                    className="bg-blue-500 text-white p-2 rounded"
-                    onClick={() => handleSelect(item)}
-                  >
-                    Select
                   </button>
                 </td>
               </tr>
