@@ -51,7 +51,7 @@ const GameConsole = ({ setNo, filteredQuestions }) => {
       console.log('basePath:', basePath);
   
       // Construct the complete path
-      const path = `${basePath}/askedQuestions/${currentQuestion.qNo}`;
+      const path = `${basePath}/askedQuestions/q`;
       console.log('path:', path);
   
       const data = {
@@ -93,7 +93,7 @@ const GameConsole = ({ setNo, filteredQuestions }) => {
   
     try {
       // Reference to the specific data in RTDB
-      const dataRef = ref(db1, `askedQuestions/${currentQuestion.qNo}/buttonStates/playMedia`);
+      const dataRef = ref(db1, `askedQuestions/${currentQuestion.qNo}/buttonStates`);
   
       // Update the playMedia value
       await update(dataRef, { playMedia });
