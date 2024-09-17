@@ -6,7 +6,7 @@ import AuthForm from "./components/AuthForm";
 import CompleteSignup from "./components/CompleteSignup";
 import LoggedInScreen from "./components/LoggedInScreen";
 import AdminPage from "./pages/AdminPage";
-import GameConsole from "./pages/GameConsole";
+import GameSetup from "./pages/GameSetup";
 import MillionaireGame from "./pages/MillionaireGame";
 import AddDataFromJSON from "./components/AddDataFromJSON"; 
 import ManageQuestions from "./components/ManageQuestions";
@@ -27,7 +27,7 @@ function App() {
             {userData?.role === "admin" && (
               <>
               <Route path="/admin" element={<AdminPage />} />
-              <Route path="/game" element={<GameConsole />} />
+              <Route path="/game" element={<GameSetup />} />
               <Route path="/add-data" element={<AddDataFromJSON />} />
               
               <Route path="/manageq" element={<ManageQuestions />} />
