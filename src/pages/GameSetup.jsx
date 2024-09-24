@@ -1,14 +1,14 @@
 import { useState, useEffect } from 'react';
 import { collection, doc, getDoc } from 'firebase/firestore';
 import { db } from '../firebase'; // Import your Firestore setup
-import GameConsole from './GameConsole'; // Import the Game Console component
+import { useNavigate } from 'react-router-dom'; // Import useNavigate for routing
 
 const GameSetup = () => {
   const [questionSets, setQuestionSets] = useState([]);
   const [filteredQuestions, setFilteredQuestions] = useState([]);
   const [setNo, setSetNo] = useState('');
   const [questionNo, setQuestionNo] = useState(0);
-  const [startGame, setStartGame] = useState(false);
+  const navigate = useNavigate();
 
   // Fetch question sets from Firestore
   const fetchQuestionSets = async () => {
@@ -37,10 +37,10 @@ const GameSetup = () => {
       );
       setFilteredQuestions(filtered);
 
-      // Start the game only if there are valid questions
+      // Navigate to the GameConsole route with filtered questions
       if (filtered.length > 0) {
-        console.log(filtered)
-        setStartGame(true);
+        console.log(filtered);
+        navigate('/game-console', { state: { setNo, filteredQuestions: filtered } });
       } else {
         alert('No questions found for the entered Set No and Question No');
       }
@@ -48,11 +48,6 @@ const GameSetup = () => {
       alert('Please enter valid Set No and Question No');
     }
   };
-
-  // If the game has started, pass the filtered questions to the GameConsole component
-  if (startGame) {
-    return <GameConsole setNo={setNo} filteredQuestions={filteredQuestions} />;
-  }
 
   return (
     <div className="p-4">
