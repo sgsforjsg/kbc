@@ -24,7 +24,7 @@ function GameConsole({ setNo, filteredQuestions }) {
   useEffect(() => {
     if (filteredQuestions.length > 0) {
       setCurrentQuestion(filteredQuestions[0]);
-      setCorrectAnswer(filteredQuestions[0].answer);
+      setCorrectAnswer(filteredQuestions[0].ans);
     }
   }, [filteredQuestions]);
 
@@ -66,7 +66,8 @@ function GameConsole({ setNo, filteredQuestions }) {
   const optionLabels = ['A', 'B', 'C', 'D'];
 
   return (
-    <div className="relative w-screen h-screen bg-black overflow-hidden flex">
+    <div className="absolute top-0 left-0 w-screen h-screen bg-blue-200 overflow-hidden flex">
+
       {/* Left + Center - Game Area (Takes 2/3 of the screen) */}
       <div className="flex justify-center items-start w-2/3 h-full p-8">
         {/* Top Aligned Question and Options */}
@@ -78,7 +79,8 @@ function GameConsole({ setNo, filteredQuestions }) {
               {optionsVisible && (
                 <div className="grid grid-cols-2 gap-4 w-full">
                   {currentQuestion.options.map((option, idx) => {
-                    const isCorrect = option === correctAnswer;
+                    console.log('ans',currentQuestion.options[currentQuestion.ans])
+                    const isCorrect = option ===currentQuestion.options[currentQuestion.ans] ;
                     const isSelected = option === selectedAnswer;
 
                     let bgColor = 'bg-gray-200 text-black';
