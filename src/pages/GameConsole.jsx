@@ -3,14 +3,17 @@ import { ref, set, update } from 'firebase/database';
 import { doc, updateDoc, collection } from 'firebase/firestore';
 import { db1 } from '../firebase'; // Import your Firestore setup
 import { useLocation, useNavigate } from 'react-router-dom'; // Import useNavigate
-
+import Timer from '../components/Timer';
 
 
 const GameConsole = () => {
   const location = useLocation();
   const navigate = useNavigate(); // Initialize useNavigate
   const { setNo, filteredQuestions } = location.state || {}; // Get setNo and filteredQuestions from location.state
-
+  const [showTimer, setShowTimer] = useState(false); // State to track the visibility of the timer
+  const toggleTimer = () => {
+    setShowTimer(!showTimer); // Toggle between showing and hiding the timer
+  };
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   const [currentQuestion, setCurrentQuestion] = useState(null);
   const [selectedAnswer, setSelectedAnswer] = useState(null);
@@ -98,11 +101,16 @@ const GameConsole = () => {
   }, []);
 
   return (
-    <div className="absolute top-0 left-0 w-screen h-screen bg-blue-200 overflow-hidden flex">
-      {/* Left + Center - Game Area (Takes 2/3 of the screen) */}
-      <div className="flex justify-center items-start w-2/3 h-full p-8">
+    <div className="absolute top-0 left-0 w-screen h-screen bg-blue-1000 overflow-hidden flex">
+      {/* Left + Center - Game Area (Takes 80% of the screen) */}
+      {showTimer && (
+        <div className="absolute top-10 left-[40%]">
+          <Timer />
+        </div>
+      )}
+      <div className="flex justify-center items-start  bg-gray-900 w-4/5 h-full p-8">
         {/* Top Aligned Question and Options */}
-        <div className="flex flex-col items-center justify-start w-full h-2/3 bg-gray-800 p-8 rounded-lg text-white">
+        <div className=" absolute top-[15%] left-[1%] w-1/2 h-1/2 bg-gray-800 p-8 rounded-lg text-white">
           {askQuestion && currentQuestion && (
             <>
               <h3 className="text-xl font-bold mb-4">Question {currentQuestion.qNo}</h3>
@@ -147,9 +155,9 @@ const GameConsole = () => {
         </div>
       </div>
 
-      {/* Right Side - Prize Money Ladder */}
-      <div className="w-1/3 h-full bg-gray-900 p-6">
-        <ul className="text-right space-y-3 text-lg font-semibold text-white">
+      {/* Right Side - Prize Money Ladder (Takes 20% of the screen) */}
+      <div className="right-0 w-1/5 h-full bg-gray-800 mt-3 ">
+        <ul className="text-left space-y-3 text-lg font-semibold ml-5 text-white">
           {prizeMoney
             .slice()
             .reverse()
@@ -169,42 +177,48 @@ const GameConsole = () => {
       </div>
 
       {/* Bottom Buttons */}
-      <div className="absolute bottom-8 left-0 right-0 flex justify-center space-x-4">
+      <div className="absolute bottom-8 left-0 right-0 flex justify-left space-x-4">
         <button
-          className="bg-blue-500 text-white p-4 rounded-lg w-1/5"
+          className="bg-blue-500 text-white p-4 rounded-lg"
           onClick={handleAsk}
           disabled={askQuestion}
         >
           Ask
         </button>
         <button
-          className="bg-blue-500 text-white p-4 rounded-lg w-1/5"
+          className="bg-blue-500 text-white p-4 rounded-lg"
           onClick={handleShowOptions}
           disabled={!askQuestion || optionsVisible}
         >
           Show
         </button>
         <button
-          className="bg-red-500 text-white p-4 rounded-lg w-1/5"
+          className="bg-red-500 text-white p-4 rounded-lg"
           onClick={handleLockAnswer}
           disabled={!selectedAnswer || lockVisible}
         >
           Lock
         </button>
         <button
-          className="bg-green-500 text-white p-4 rounded-lg w-1/5"
+          className="bg-green-500 text-white p-4 rounded-lg"
           onClick={handleResult}
           disabled={!lockVisible || resultVisible}
         >
           Result
         </button>
         <button
-          className="bg-purple-500 text-white p-4 rounded-lg w-1/5"
+          className="bg-purple-500 text-white p-4 rounded-lg"
           onClick={handleNext}
           disabled={!resultVisible}
         >
           Next
-        </button> 
+        </button>
+        <button 
+          className="bg-blue-500 text-white p-2 rounded-lg" 
+          onClick={toggleTimer}
+        >
+          {showTimer ? 'Hide Timer' : 'Show Timer'}
+        </button>
         <button
           className="bg-gray-500 text-white p-4 rounded-lg"
           onClick={handleCloseGame}
@@ -212,10 +226,9 @@ const GameConsole = () => {
           Close Game
         </button>
       </div>
-
-     
     </div>
   );
 }
 
 export default GameConsole;
+
