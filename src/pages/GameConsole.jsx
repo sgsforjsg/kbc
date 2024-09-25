@@ -4,16 +4,35 @@ import { doc, updateDoc, collection } from 'firebase/firestore';
 import { db1 } from '../firebase'; // Import your Firestore setup
 import { useLocation, useNavigate } from 'react-router-dom'; // Import useNavigate
 import Timer from '../components/Timer';
-
+import LifelineWindow from '../components/LifelineWindow'; // Import the LifelineWindow component
 
 const GameConsole = () => {
   const location = useLocation();
   const navigate = useNavigate(); // Initialize useNavigate
   const { setNo, filteredQuestions } = location.state || {}; // Get setNo and filteredQuestions from location.state
   const [showTimer, setShowTimer] = useState(false); // State to track the visibility of the timer
+  const [showLifelineWindow, setShowLifelineWindow] = useState(false); // State for showing/hiding lifeline window
+  const [lifelines, setLifelines] = useState({
+    fiftyFifty: false,
+    phoneAFriend: false,
+    askTheAudience: false,
+  });
+
   const toggleTimer = () => {
     setShowTimer(!showTimer); // Toggle between showing and hiding the timer
   };
+
+  const toggleLifelineWindow = () => {
+    setShowLifelineWindow(!showLifelineWindow); // Toggle lifeline window
+  };
+
+  const handleLifelineClick = (lifeline) => {
+    setLifelines((prev) => ({
+      ...prev,
+      [lifeline]: true,
+    }));
+  };
+
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   const [currentQuestion, setCurrentQuestion] = useState(null);
   const [selectedAnswer, setSelectedAnswer] = useState(null);
@@ -219,6 +238,12 @@ const GameConsole = () => {
         >
           {showTimer ? 'Hide Timer' : 'Show Timer'}
         </button>
+        <button 
+          className="bg-orange-500 text-white p-2 rounded-lg"
+          onClick={toggleLifelineWindow}
+        >
+          {showLifelineWindow ? 'Hide Lifelines' : 'Show Lifelines'}
+        </button>
         <button
           className="bg-gray-500 text-white p-4 rounded-lg"
           onClick={handleCloseGame}
@@ -226,9 +251,13 @@ const GameConsole = () => {
           Close Game
         </button>
       </div>
+
+      {/* Lifeline Window */}
+      {showLifelineWindow && (
+        <LifelineWindow lifelines={lifelines} onLifelineClick={handleLifelineClick} />
+      )}
     </div>
   );
 }
 
 export default GameConsole;
-
