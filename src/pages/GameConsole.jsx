@@ -1,29 +1,34 @@
 import { useState, useEffect } from 'react';
 import { ref, set, update } from 'firebase/database';
 import { doc, updateDoc, collection } from 'firebase/firestore';
-import { db1 } from '../firebase'; // Import your Firestore setup
-import { useLocation, useNavigate } from 'react-router-dom'; // Import useNavigate
+import { db1 } from '../firebase';
+import { useLocation, useNavigate } from 'react-router-dom';
 import Timer from '../components/Timer';
-import LifelineWindow from '../components/LifelineWindow'; // Import the LifelineWindow component
+import LifelineWindow from '../components/LifelineWindow';
+import MediaPlayer from '../components/playMedia'; // Import the media player
 
 const GameConsole = () => {
   const location = useLocation();
-  const navigate = useNavigate(); // Initialize useNavigate
-  const { setNo, filteredQuestions } = location.state || {}; // Get setNo and filteredQuestions from location.state
-  const [showTimer, setShowTimer] = useState(false); // State to track the visibility of the timer
-  const [showLifelineWindow, setShowLifelineWindow] = useState(false); // State for showing/hiding lifeline window
+  const navigate = useNavigate();
+  const { setNo, filteredQuestions } = location.state || {};
+  const [showTimer, setShowTimer] = useState(false);
+  const [showLifelineWindow, setShowLifelineWindow] = useState(false);
   const [lifelines, setLifelines] = useState({
     fiftyFifty: false,
     phoneAFriend: false,
     askTheAudience: false,
   });
 
+  // Media Player State
+  const [showMediaPlayer, setShowMediaPlayer] = useState(false);
+  const [mediaFile, setMediaFile] = useState(null);
+
   const toggleTimer = () => {
-    setShowTimer(!showTimer); // Toggle between showing and hiding the timer
+    setShowTimer(!showTimer);
   };
 
   const toggleLifelineWindow = () => {
-    setShowLifelineWindow(!showLifelineWindow); // Toggle lifeline window
+    setShowLifelineWindow(!showLifelineWindow);
   };
 
   const handleLifelineClick = (lifeline) => {
@@ -42,7 +47,7 @@ const GameConsole = () => {
   const [optionsVisible, setOptionsVisible] = useState(false);
   const [lockVisible, setLockVisible] = useState(false);
   const [resultVisible, setResultVisible] = useState(false);
-  const [isLocked, setIsLocked] = useState(false); // To track if the answer is locked
+  const [isLocked, setIsLocked] = useState(false);
 
   const prizeMoney = [
     "₹1,000", "₹2,000", "₹3,000", "₹5,000", "₹10,000",
@@ -68,7 +73,7 @@ const GameConsole = () => {
   const handleLockAnswer = () => {
     if (!selectedAnswer) return;
     setLockVisible(true);
-    setIsLocked(true); // Stop blinking when locked
+    setIsLocked(true);
   };
 
   const handleResult = () => {
@@ -82,31 +87,24 @@ const GameConsole = () => {
       setCurrentQuestionIndex(nextIndex);
       setCurrentQuestion(filteredQuestions[nextIndex]);
       setCorrectAnswer(filteredQuestions[nextIndex].answer);
-      setSelectedAnswer(null); // Reset selected option
+      setSelectedAnswer(null);
       setShowResult(false);
       setOptionsVisible(false);
       setLockVisible(false);
       setResultVisible(false);
       setAskQuestion(false);
-      setIsLocked(false); // Reset lock state
+      setIsLocked(false);
     } else {
       alert('No more questions in this set.');
     }
   };
 
   const handleCloseGame = () => {
-    // Navigate back to the GameSetup screen
     navigate('/game');
   };
 
   const optionLabels = ['A', 'B', 'C', 'D'];
 
-  // Inline style for the blinking effect
-  const blinkingStyle = {
-    animation: 'blinking 1s infinite'
-  };
-
-  // Inject the keyframes for blinking animation
   useEffect(() => {
     const styleSheet = document.styleSheets[0];
     const keyframes = `
@@ -119,16 +117,21 @@ const GameConsole = () => {
     styleSheet.insertRule(keyframes, styleSheet.cssRules.length);
   }, []);
 
+  // Handle Media Player open
+  const handleOpenMediaPlayer = (mediaUrl) => {
+    console.log('edia',mediaUrl )
+    setMediaFile(mediaUrl);
+    setShowMediaPlayer(true);
+  };
+
   return (
     <div className="absolute top-0 left-0 w-screen h-screen bg-blue-1000 overflow-hidden flex">
-      {/* Left + Center - Game Area (Takes 80% of the screen) */}
       {showTimer && (
         <div className="absolute top-10 left-[40%]">
           <Timer />
         </div>
       )}
-      <div className="flex justify-center items-start  bg-gray-900 w-4/5 h-full p-8">
-        {/* Top Aligned Question and Options */}
+      <div className="flex justify-center items-start bg-gray-900 w-4/5 h-full p-8">
         <div className=" absolute top-[15%] left-[1%] w-1/2 h-1/2 bg-gray-800 p-8 rounded-lg text-white">
           {askQuestion && currentQuestion && (
             <>
@@ -141,15 +144,13 @@ const GameConsole = () => {
                     const isSelected = option === selectedAnswer;
 
                     let bgColor = 'bg-gray-200 text-black';
-                    let appliedStyle = {}; // This will store the blinking or default styles
+                    let appliedStyle = {};
 
                     if (showResult) {
-                      if (isCorrect) bgColor = 'bg-green-500 text-white'; // Correct answer in green
-                      else if (isSelected && !isCorrect) bgColor = 'bg-red-500 text-white'; // Wrong selected answer in red
+                      if (isCorrect) bgColor = 'bg-green-500 text-white';
+                      else if (isSelected && !isCorrect) bgColor = 'bg-red-500 text-white';
                     } else if (isSelected) {
-                      bgColor = 'bg-blue-500 text-white'; // Highlight selected option in blue
-                      
-                      // Apply the blinking effect only if the answer is not locked
+                      bgColor = 'bg-blue-500 text-white';
                       if (!isLocked) {
                         appliedStyle = blinkingStyle;
                       }
@@ -159,7 +160,7 @@ const GameConsole = () => {
                       <button
                         key={idx}
                         className={`p-4 rounded-lg ${bgColor}`}
-                        style={appliedStyle} // Apply blinking or default styles here
+                        style={appliedStyle}
                         onClick={() => setSelectedAnswer(option)}
                         disabled={showResult}
                       >
@@ -174,7 +175,6 @@ const GameConsole = () => {
         </div>
       </div>
 
-      {/* Right Side - Prize Money Ladder (Takes 20% of the screen) */}
       <div className="right-0 w-1/5 h-full bg-gray-800 mt-3 ">
         <ul className="text-left space-y-3 text-lg font-semibold ml-5 text-white">
           {prizeMoney
@@ -195,7 +195,6 @@ const GameConsole = () => {
         </ul>
       </div>
 
-      {/* Bottom Buttons */}
       <div className="absolute bottom-8 left-0 right-0 flex justify-left space-x-4">
         <button
           className="bg-blue-500 text-white p-4 rounded-lg"
@@ -232,17 +231,23 @@ const GameConsole = () => {
         >
           Next
         </button>
-        <button 
-          className="bg-blue-500 text-white p-2 rounded-lg" 
+        <button
+          className="bg-blue-500 text-white p-2 rounded-lg"
           onClick={toggleTimer}
         >
           {showTimer ? 'Hide Timer' : 'Show Timer'}
         </button>
-        <button 
+        <button
           className="bg-orange-500 text-white p-2 rounded-lg"
           onClick={toggleLifelineWindow}
         >
           {showLifelineWindow ? 'Hide Lifelines' : 'Show Lifelines'}
+        </button>
+        <button
+          className="bg-blue-500 text-white p-2 rounded-lg"
+          onClick={() => handleOpenMediaPlayer('./media/Sandeep_Maheshwari.mp4')}
+        >
+          Play Media
         </button>
         <button
           className="bg-gray-500 text-white p-4 rounded-lg"
@@ -252,12 +257,13 @@ const GameConsole = () => {
         </button>
       </div>
 
-      {/* Lifeline Window */}
       {showLifelineWindow && (
         <LifelineWindow lifelines={lifelines} onLifelineClick={handleLifelineClick} />
       )}
+
+      {showMediaPlayer && <MediaPlayer mediaFile={mediaFile} onClose={() => setShowMediaPlayer(false)} />}
     </div>
   );
-}
+};
 
 export default GameConsole;
