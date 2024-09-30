@@ -13,7 +13,7 @@ const GameSetup = () => {
   // Fetch question sets from Firestore
   const fetchQuestionSets = async () => {
     try {
-      const docRef = doc(collection(db, 'questionSets'), 'iISsquxiWPuH4jHIBTk5'); // Use correct document ID
+      const docRef = doc(collection(db, 'questionSets'), 'quiz'); // Use correct document ID
       const docSnap = await getDoc(docRef);
       if (docSnap.exists()) {
         setQuestionSets(docSnap.data().questions);
@@ -33,13 +33,13 @@ const GameSetup = () => {
     if (setNo && questionNo >= 0) {
       // Filter the questions based on setNo and qNo >= entered questionNo
       const filtered = questionSets.filter(
-        (q) => q.setNo === Number(setNo) && q.qNo >= Number(questionNo)
+        (q) => q.qset === Number(setNo) && q.qno >= Number(questionNo)
       );
       setFilteredQuestions(filtered);
 
       // Navigate to the GameConsole route with filtered questions
       if (filtered.length > 0) {
-        console.log(filtered);
+        console.log('filtered set',filtered);
         navigate('/game-console', { state: { setNo, filteredQuestions: filtered } });
       } else {
         alert('No questions found for the entered Set No and Question No');
