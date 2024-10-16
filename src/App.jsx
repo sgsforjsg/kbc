@@ -11,6 +11,7 @@ import MillionaireGame from "./pages/MillionaireGame";
 import AddDataFromJSON from "./components/AddDataFromJSON"; 
 import EditData from "./components/AddAndEditData"; 
 import ManageQuestions from "./components/ManageQuestions";
+import DownloadMediaFiles from "./components/DownloadMediaFiles";
 import GameConsole from './pages/GameConsole'; // Your GameConsole component
 import Home from "./pages/Home";
 function App() {
@@ -36,6 +37,7 @@ function App() {
               <Route path="/game-console" element={<GameConsole />} />
               <Route path="/add-data" element={<AddDataFromJSON />} />
               <Route path="/edit" element={<EditData />} />
+              <Route path="/dl_media" element={< DownloadMediaFiles/>} />
               <Route path="/manageq" element={<ManageQuestions />} />
               <Route path="/game2" element={<MillionaireGame/>}/>
 

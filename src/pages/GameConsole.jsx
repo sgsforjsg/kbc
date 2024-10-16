@@ -5,6 +5,7 @@ import { db1 } from '../firebase'; // Import your Firestore setup
 import { useLocation, useNavigate } from 'react-router-dom'; // Import useNavigate
 import Timer from '../components/Timer';
 import LifelineWindow from '../components/LifelineWindow'; // Import the LifelineWindow component
+import MediaPlayer from '../components/MediaPlayer';
 
 const GameConsole = () => {
   const location = useLocation();
@@ -137,7 +138,9 @@ const GameConsole = () => {
         <div className=" absolute top-[15%] left-[1%] w-1/2 h-1/2 bg-gray-800 p-8 rounded-lg text-white">
           {askQuestion && currentQuestion && (
             <>
-              <h3 className="text-xl font-bold mb-4">Question {currentQuestion.qNo}</h3>
+         { /*    <h3 className="text-xl font-bold mb-4">Question {currentQuestion['media link']}</h3>*/}
+            { currentQuestion['media link']!='a' &&( <MediaPlayer mediaLink={currentQuestion['media link']} />)}
+
               <p className="text-2xl mb-6">{currentQuestion.question}</p>
               {optionsVisible && (
                 <div className="grid grid-cols-2 gap-4 w-full">

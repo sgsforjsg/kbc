@@ -13,7 +13,7 @@ const Navbar = () => {
         </div>
         
         <div className="hidden md:flex space-x-6">
-          <Link to="/" className="text-gray-300 hover:text-white">
+          <Link to="/home" className="text-gray-300 hover:text-white">
             Home
           </Link>
 

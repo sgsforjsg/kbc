@@ -37,7 +37,7 @@ const AddAndEditData = () => {
 
   // Load data from Firestore if IndexedDB is empty
   const loadDataFromFirestore = async () => {
-    const docRef = doc(collection(db, 'questionSets'), 'yourDocumentID');
+    const docRef = doc(collection(db, 'questionSets'), 'quiz');
     const docSnap = await getDoc(docRef);
 
     if (docSnap.exists()) {
@@ -80,7 +80,7 @@ const AddAndEditData = () => {
 
   // Update Firestore with IndexedDB data
   const updateFirestoreWithIndexedDb = async () => {
-    const docRef = doc(collection(db, 'questionSets'), 'yourDocumentID');
+    const docRef = doc(collection(db, 'questionSets'), 'quiz');
     await updateDoc(docRef, { questions: data });
     alert('Data updated in Firestore from IndexedDB');
   };
@@ -184,11 +184,11 @@ const AddAndEditData = () => {
                   />
                 </label>
                 <label className="block">
-                  <span>Answer:</span>
+                  <span>is selected ?:</span>
                   <input
                     type="text"
-                    value={record.true_ans}
-                    onChange={(e) => handleEdit(index + currentPage * pageSize, 'true_ans', e.target.value)}
+                    value={record.sele}
+                    onChange={(e) => handleEdit(index + currentPage * pageSize, 'sele', e.target.value)}
                     className="block w-full mt-1 p-2 border border-gray-300 rounded"
                   />
                 </label>

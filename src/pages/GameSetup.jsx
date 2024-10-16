@@ -6,8 +6,8 @@ import { useNavigate } from 'react-router-dom'; // Import useNavigate for routin
 const GameSetup = () => {
   const [questionSets, setQuestionSets] = useState([]);
   const [filteredQuestions, setFilteredQuestions] = useState([]);
-  const [setNo, setSetNo] = useState('');
-  const [questionNo, setQuestionNo] = useState(0);
+  const [setNo, setSetNo] = useState('1');
+  const [questionNo, setQuestionNo] = useState(1);
   const navigate = useNavigate();
 
   // Fetch question sets from Firestore
@@ -17,6 +17,7 @@ const GameSetup = () => {
       const docSnap = await getDoc(docRef);
       if (docSnap.exists()) {
         setQuestionSets(docSnap.data().questions);
+        console.log('question sets found',docSnap.data().questions);
       } else {
         console.log('No question sets found');
       }
