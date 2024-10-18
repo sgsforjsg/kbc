@@ -197,8 +197,8 @@ const AddAndEditData = () => {
   console.log('data', data)
   const handleFilterChange = () => {
     const filtered =filteredData.filter((item) =>
-      (snoFilter === '' || item.qno.toString().includes(snoFilter)) &&
-      (qsetFilter === '' || item.qset.toString().includes(qsetFilter))
+      (snoFilter === '' || item.qno.toString()===snoFilter) &&
+      (qsetFilter === '' || item.qset.toString()===qsetFilter)
     );
     setData(filtered);
     setTotalPages(Math.ceil(filtered.length / pageSize));
