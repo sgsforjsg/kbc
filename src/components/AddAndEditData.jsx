@@ -1,12 +1,15 @@
+//   work as ok file
+
 import { useState, useEffect } from 'react';
 import { collection, doc, getDoc, updateDoc } from 'firebase/firestore';
-import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
+import { ref, uploadBytesResumable, uploadBytes, getDownloadURL } from 'firebase/storage';
+
 import { db, storage } from '../firebase'; // Ensure you import `db` and `storage` from Firebase setup
 import { openDB } from 'idb'; // IndexedDB using idb library (run `npm install idb`)
 
 const dbName = 'QuestionDB';
 const storeName = 'questionsStore';
-const pageSize = 5; // Number of records per page
+const pageSize = 15; // Number of records per page
 
 const AddAndEditData = () => {
   const [data, setData] = useState([]);
@@ -15,6 +18,14 @@ const AddAndEditData = () => {
   const [indexedDbExists, setIndexedDbExists] = useState(false);
   const [currentPage, setCurrentPage] = useState(0); // Track the current page
   const [totalPages, setTotalPages] = useState(0); // Track total number of pages
+  const [filteredData, setFilteredData] = useState([]); // Data after applying filters
+  const [snoFilter, setSnoFilter] = useState(''); // Input for 'sno' filter
+  const [qsetFilter, setQsetFilter] = useState(''); // Input for 'qset' filter
+
+
+
+
+
 
   // Check if IndexedDB contains data on mount
   useEffect(() => {
@@ -87,38 +98,75 @@ const AddAndEditData = () => {
 
   // Handle file input for media link upload
   const handleFileInput = (e) => {
+    console.log('hande file input')
     setFile(e.target.files[0]);
   };
 
   // Upload file to Firebase Storage and update media link
   const uploadFile = async (record) => {
+    console.log('Handling file uploading...');
+
     if (!file) {
       alert('Please select a file');
       return;
     }
-  
+
     try {
-      // Show message: uploading started
       alert('Uploading file, please wait...');
 
+      // Create a reference to the storage location
       const storageRef = ref(storage, `media/${file.name}`);
-      await uploadBytes(storageRef, file);
-      
-      // Get the file URL after upload
-      const fileURL = await getDownloadURL(storageRef);
-  
-      // Update the media link field
-      const updatedRecord = { ...record, 'media link': fileURL };
-      await updateIndexedDbRecord(updatedRecord);
-  
-      // Show message: upload successful
-      alert('File uploaded successfully, media link updated!');
+
+      // Start the resumable upload
+      const uploadTask = uploadBytesResumable(storageRef, file);
+
+      const startTime = Date.now(); // Capture the upload start time
+
+      // Monitor the upload progress
+      uploadTask.on(
+        'state_changed',
+        (snapshot) => {
+          const progress = (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
+          console.log(`Upload is ${progress.toFixed(2)}% done`);
+
+          // Calculate the elapsed time since upload started
+          const elapsedTime = (Date.now() - startTime) / 1000; // in seconds
+
+          // Calculate speed: bytes per second
+          const speed = snapshot.bytesTransferred / elapsedTime;
+
+          // Estimate remaining time in seconds
+          const remainingBytes = snapshot.totalBytes - snapshot.bytesTransferred;
+          const remainingTime = (remainingBytes / speed).toFixed(2);
+
+          // Display progress and estimated remaining time
+          alert(
+            `Upload is ${progress.toFixed(2)}% done. Estimated remaining time: ${remainingTime} seconds.`
+          );
+        },
+        (error) => {
+          console.error('Error uploading file:', error);
+          alert('Failed to upload file. Please try again.');
+        },
+        async () => {
+          // Get the download URL after upload completes
+          const fileURL = await getDownloadURL(uploadTask.snapshot.ref);
+
+          // Update the media link field
+          const updatedRecord = { ...record, 'media link': fileURL };
+          await updateIndexedDbRecord(updatedRecord);
+
+          alert('File uploaded successfully, media link updated!');
+          console.log('File uploaded:', fileURL);
+        }
+      );
     } catch (error) {
-      // Show message: upload error
       console.error('Error uploading file:', error);
       alert('Failed to upload file. Please try again.');
     }
   };
+
+
 
   // Handle record field edits
   const handleEdit = (index, field, value) => {
@@ -146,10 +194,49 @@ const AddAndEditData = () => {
       setCurrentPage(currentPage - 1);
     }
   };
+  console.log('data', data)
+  const handleFilterChange = () => {
+    const filtered =filteredData.filter((item) =>
+      (snoFilter === '' || item.qno.toString().includes(snoFilter)) &&
+      (qsetFilter === '' || item.qset.toString().includes(qsetFilter))
+    );
+    setData(filtered);
+    setTotalPages(Math.ceil(filtered.length / pageSize));
+    setCurrentPage(0); // Reset to the first page after filtering
+  };
+
+
+
+
+
+
+
 
   return (
     <div className="p-6 bg-gray-100 min-h-screen">
       <h1 className="text-2xl font-bold mb-4">Add and Edit Data</h1>
+      <div className="flex space-x-4 mb-4">
+        <input
+          type="text"
+          placeholder="Filter by Sno"
+          value={snoFilter}
+          onChange={(e) => setSnoFilter(e.target.value)}
+          className="p-2 border border-gray-300 rounded"
+        />
+        <input
+          type="text"
+          placeholder="Filter by Qset"
+          value={qsetFilter}
+          onChange={(e) => setQsetFilter(e.target.value)}
+          className="p-2 border border-gray-300 rounded"
+        />
+        <button onClick={handleFilterChange} className="bg-blue-500 text-white px-4 py-2 rounded">
+          Apply Filters
+        </button>
+      </div>
+
+
+
 
       {/* Check if IndexedDB exists and allow refreshing */}
       {indexedDbExists ? (
@@ -183,24 +270,57 @@ const AddAndEditData = () => {
                     className="block w-full mt-1 p-2 border border-gray-300 rounded"
                   />
                 </label>
-                <label className="block">
-                  <span>is selected ?:</span>
-                  <input
-                    type="text"
-                    value={record.sele}
-                    onChange={(e) => handleEdit(index + currentPage * pageSize, 'sele', e.target.value)}
-                    className="block w-full mt-1 p-2 border border-gray-300 rounded"
-                  />
-                </label>
-                <label className="block">
-                  <span>Priority:</span>
-                  <input
-                    type="text"
-                    value={record.Priority}
-                    onChange={(e) => handleEdit(index + currentPage * pageSize, 'Priority', e.target.value)}
-                    className="block w-full mt-1 p-2 border border-gray-300 rounded"
-                  />
-                </label>
+                <div className="grid grid-cols-4 gap-4 items-center">
+                  <label className="block">
+                    <span>Priority:</span>
+                    <input
+                      type="text"
+                      value={record.Priority}
+                      onChange={(e) =>
+                        handleEdit(index + currentPage * pageSize, 'Priority', e.target.value)
+                      }
+                      className="block w-full mt-1 p-2 border border-gray-300 rounded"
+                    />
+                  </label>
+
+                  <label className="block">
+                    <span>Qno:</span>
+                    <input
+                      type="text"
+                      value={record.qno}
+                      onChange={(e) =>
+                        handleEdit(index + currentPage * pageSize, 'qno', e.target.value)
+                      }
+                      className="block w-full mt-1 p-2 border border-gray-300 rounded"
+                    />
+                  </label>
+
+                  <label className="block">
+                    <span>Qset:</span>
+                    <input
+                      type="text"
+                      value={record.qset}
+                      onChange={(e) =>
+                        handleEdit(index + currentPage * pageSize, 'qset', e.target.value)
+                      }
+                      className="block w-full mt-1 p-2 border border-gray-300 rounded"
+                    />
+                  </label>
+
+                  <label className="block">
+                    <span>Sele:</span>
+                    <input
+                      type="text"
+                      value={record.sele}
+                      onChange={(e) =>
+                        handleEdit(index + currentPage * pageSize, 'sele', e.target.value)
+                      }
+                      className="block w-full mt-1 p-2 border border-gray-300 rounded"
+                    />
+                  </label>
+                </div>
+
+
                 <label className="block">
                   <span>Media Link:</span>
                   <input
