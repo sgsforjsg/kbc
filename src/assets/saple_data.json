@@ -1,0 +1,35 @@
+[
+ {
+  "ID": 2,
+  "qset": 2,
+  "qno": 2,
+  "Priority": "1",
+  "sele": "y",
+  "question": "Who played the character of Jethalal in the popular TV series 'Taarak Mehtaka Ulta Chashma'?",
+  "A": "Dilip Joshi",
+  "B": "Shailesh Lodha",
+  "C": "Tanmay Vekaria",
+  "D": "Nirmal Soni",
+  "true_ans": "a",
+  "L5050": "cd",
+  "Hint": "a",
+  "media link": "a",
+  "speech": "a"
+ },
+ {
+  "ID": 3,
+  "qset": 3,
+  "qno": 7,
+  "Priority": "2",
+  "sele": "y",
+  "question": "What services does the  'Abhayam HelpLine' offer?",
+  "A": "Heal the injured bird",
+  "B": "Rescue in raging",
+  "C": "Protection from domestic violence",
+  "D": "Advising and defending women",
+  "true_ans": "d",
+  "L5050": "ac",
+  "Hint": "a",
+  "media link": "a",
+  "speech": "a"
+ }]

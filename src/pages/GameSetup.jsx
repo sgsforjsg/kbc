@@ -1,25 +1,43 @@
 import { useState, useEffect } from 'react';
-import { collection, doc, getDoc } from 'firebase/firestore';
-import { db } from '../firebase'; // Import your Firestore setup
-import { useNavigate } from 'react-router-dom'; // Import useNavigate for routing
+import { useNavigate } from 'react-router-dom'; // For routing to AddAndEditData
+import { openDB } from 'idb'; // Import idb library
+
+
+const DB_NAME = 'QuestionDB';
+const STORE_NAME = 'questionsStore';
+
 
 const GameSetup = () => {
   const [questionSets, setQuestionSets] = useState([]);
-  const [filteredQuestions, setFilteredQuestions] = useState([]);
   const [setNo, setSetNo] = useState('1');
   const [questionNo, setQuestionNo] = useState(1);
   const navigate = useNavigate();
 
-  // Fetch question sets from Firestore
+  // Initialize IndexedDB and return the database instance
+  const initDB = async () => {
+    return openDB(DB_NAME, 1, {
+      upgrade(db) {
+        if (!db.objectStoreNames.contains(STORE_NAME)) {
+          db.createObjectStore(STORE_NAME, { keyPath: 'id', autoIncrement: true });
+        }
+      },
+    });
+  };
+
+  // Fetch question sets from IndexedDB
   const fetchQuestionSets = async () => {
     try {
-      const docRef = doc(collection(db, 'questionSets'), 'quiz'); // Use correct document ID
-      const docSnap = await getDoc(docRef);
-      if (docSnap.exists()) {
-        setQuestionSets(docSnap.data().questions);
-        console.log('question sets found',docSnap.data().questions);
+      const db = await initDB();
+      const tx = db.transaction(STORE_NAME, 'readonly');
+      const store = tx.objectStore(STORE_NAME);
+      const allQuestions = await store.getAll();
+
+      if (allQuestions.length > 0) {
+        setQuestionSets(allQuestions);
+        console.log('Questions found:', allQuestions);
       } else {
-        console.log('No question sets found');
+        console.log('No questions found. Redirecting to AddAndEditData...');
+        navigate('/edit'); // Navigate to AddAndEditData if no data found
       }
     } catch (error) {
       console.error('Error fetching question sets:', error);
@@ -32,16 +50,14 @@ const GameSetup = () => {
 
   const handleStart = () => {
     if (setNo && questionNo >= 0) {
-      // Filter the questions based on setNo and qNo >= entered questionNo
-      const filtered = questionSets.filter(
-        (q) => q.qset === Number(setNo) && q.qno >= Number(questionNo)
+      const filteredQuestions = questionSets.filter(
+        (q) => q.qset === setNo && q.qno >= questionNo
       );
-      setFilteredQuestions(filtered);
 
-      // Navigate to the GameConsole route with filtered questions
-      if (filtered.length > 0) {
-        console.log('filtered set',filtered);
-        navigate('/game-console', { state: { setNo, filteredQuestions: filtered } });
+      if (filteredQuestions.length > 0) {
+        navigate('/game-console', {
+          state: { setNo, filteredQuestions },
+        });
       } else {
         alert('No questions found for the entered Set No and Question No');
       }

@@ -1,42 +1,99 @@
-// components/MediaPlayer.js
-import { useEffect, useRef, useState } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
+import ReactPlayer from 'react-player';
 
 const MediaPlayer = ({ mediaLink }) => {
-  const mediaRef = useRef(null); // Ref to control media element
-  const [isPlaying, setIsPlaying] = useState(false); // Track play/pause state
+  const [localMediaLink, setLocalMediaLink] = useState(null);
+  const [isPlaying, setIsPlaying] = useState(false);
+  const [isModalOpen, setIsModalOpen] = useState(false); // Control the modal
+  const playerRef = useRef(null);
 
-  const handlePlayPause = () => {
-    if (isPlaying) {
-      mediaRef.current.pause();
-    } else {
-      mediaRef.current.play();
+  const handleFileInput = (event) => {
+    const file = event.target.files[0];
+    if (file) {
+      const url = URL.createObjectURL(file);
+      setLocalMediaLink(url);
+      setIsModalOpen(true); // Open modal when a file is selected
     }
-    setIsPlaying(!isPlaying);
   };
 
-  // Play media automatically on component mount if link is available
-  useEffect(() => {
-    if (mediaLink) {
-      mediaRef.current.play();
-      setIsPlaying(true);
-    }
-  }, [mediaLink]);
+  const handleOpenModal = () => {
+    setIsModalOpen(true);
+    setIsPlaying(true); // Auto-start playback when modal opens
+  };
 
-  const isVideo = mediaLink.endsWith('.mp4') || mediaLink.includes('video');
+  const handleCloseModal = () => {
+    setIsModalOpen(false);
+    setIsPlaying(false); // Pause when modal closes
+  };
+
+  const currentLink = localMediaLink || mediaLink;
+
+  useEffect(() => {
+    if (isModalOpen) {
+      setIsPlaying(true); // Ensure autoplay when modal is open
+    }
+  }, [isModalOpen]);
 
   return (
     <div className="mt-4">
-      {isVideo ? (
-        <video ref={mediaRef} src={mediaLink} className="w-full rounded-md" controls />
-      ) : (
-        <audio ref={mediaRef} src={mediaLink} className="w-full" controls />
-      )}
-      <button 
-        onClick={handlePlayPause} 
-        className="mt-2 bg-blue-500 text-white px-4 py-2 rounded-lg"
+      <input
+        type="file"
+        accept="video/mp4, audio/*"
+        onChange={handleFileInput}
+        className="mb-4"
+      />
+
+      <button
+        onClick={handleOpenModal}
+        className="bg-green-500 text-white px-4 py-2 rounded-lg"
       >
-        {isPlaying ? 'Pause' : 'Play'}
+        Open Media Player
       </button>
+
+      {/* Modal */}
+      {isModalOpen && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="relative bg-white p-6 rounded-lg shadow-lg w-11/12 max-w-xl">
+            <button
+              onClick={handleCloseModal}
+              className="absolute top-4 right-4 text-gray-500 hover:text-black text-2xl"
+            >
+              ✕
+            </button>
+
+            {currentLink ? (
+              <ReactPlayer
+                ref={playerRef}
+                url={currentLink}
+                playing={isPlaying}
+                controls
+                width="100%"
+                height="auto"
+              />
+            ) : (
+              <p className="text-gray-500">No media selected or invalid link.</p>
+            )}
+
+            {currentLink && (
+              <div className="flex justify-end mt-4">
+                <button
+                  onClick={() => setIsPlaying(!isPlaying)}
+                  className="mr-4 bg-blue-500 text-white px-4 py-2 rounded-lg"
+                >
+                  {isPlaying ? 'Pause' : 'Play'}
+                </button>
+
+                <button
+                  onClick={handleCloseModal}
+                  className="bg-red-500 text-white px-4 py-2 rounded-lg"
+                >
+                  Close
+                </button>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
     </div>
   );
 };

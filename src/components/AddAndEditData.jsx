@@ -47,17 +47,44 @@ const AddAndEditData = () => {
   };
 
   // Load data from Firestore if IndexedDB is empty
-  const loadDataFromFirestore = async () => {
+// Load data from Firestore and replace data in IndexedDB
+const loadDataFromFirestore = async () => {
+  try {
     const docRef = doc(collection(db, 'questionSets'), 'quiz');
     const docSnap = await getDoc(docRef);
 
     if (docSnap.exists()) {
       const questionsData = docSnap.data().questions;
+
+      // Clear IndexedDB and save new data
+      await clearIndexedDb(); 
+      await saveToIndexedDb(questionsData);
+
+      // Update state with new data
       setData(questionsData);
-      saveToIndexedDb(questionsData);
-      setTotalPages(Math.ceil(questionsData.length / pageSize)); // Set total pages based on data
+      setFilteredData(questionsData); 
+      setTotalPages(Math.ceil(questionsData.length / pageSize));
+      setCurrentPage(0); // Reset to the first page
+
+      alert('Data refreshed and saved to IndexedDB');
+    } else {
+      alert('No data found in Firestore');
     }
-  };
+  } catch (error) {
+    console.error('Error loading data:', error);
+    alert('Failed to load data from Firestore');
+  }
+};
+
+// Clear all data from IndexedDB
+const clearIndexedDb = async () => {
+  const db = await openDB(dbName, 1);
+  const tx = db.transaction(storeName, 'readwrite');
+  const store = tx.objectStore(storeName);
+  await store.clear();
+  await tx.done;
+  console.log('IndexedDB cleared');
+};
 
   // Save to IndexedDB
   const saveToIndexedDb = async (questions) => {
@@ -77,6 +104,7 @@ const AddAndEditData = () => {
     const store = tx.objectStore(storeName);
     const allData = await store.getAll();
     setData(allData);
+    setFilteredData(allData)
     setTotalPages(Math.ceil(allData.length / pageSize)); // Set total pages based on data
   };
 
@@ -196,9 +224,9 @@ const AddAndEditData = () => {
   };
   console.log('data', data)
   const handleFilterChange = () => {
-    const filtered =filteredData.filter((item) =>
-      (snoFilter === '' || item.qno.toString()===snoFilter) &&
-      (qsetFilter === '' || item.qset.toString()===qsetFilter)
+    const filtered = filteredData.filter((item) =>
+      (snoFilter === '' || item.qno.toString().includes(snoFilter)) &&
+      (qsetFilter === '' || item.qset.toString().includes(qsetFilter))
     );
     setData(filtered);
     setTotalPages(Math.ceil(filtered.length / pageSize));
