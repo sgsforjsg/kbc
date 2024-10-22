@@ -1,54 +1,76 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import ReactPlayer from 'react-player';
+import localforage from 'localforage';
 
-const MediaPlayer = ({ mediaLink }) => {
+const MediaPlayer = ({qid}) => {
+  console.log('qid',qid)
+  const [mediaFiles, setMediaFiles] = useState([]); // Store files
   const [localMediaLink, setLocalMediaLink] = useState(null);
   const [isPlaying, setIsPlaying] = useState(false);
-  const [isModalOpen, setIsModalOpen] = useState(false); // Control the modal
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isFileInputVisible, setIsFileInputVisible] = useState(true); // Show input once
   const playerRef = useRef(null);
 
-  const handleFileInput = (event) => {
-    const file = event.target.files[0];
-    if (file) {
-      const url = URL.createObjectURL(file);
-      setLocalMediaLink(url);
-      setIsModalOpen(true); // Open modal when a file is selected
-    }
+  // Load files from localforage if already selected
+  useEffect(() => {
+    const loadFiles = async () => {
+      const storedFiles = await localforage.getItem('mediaFiles');
+      if (storedFiles) {
+        setMediaFiles(storedFiles);
+        setIsFileInputVisible(false); // Hide input if files are already loaded
+      }
+    };
+    loadFiles();
+  }, []);
+
+  const handleFileInput = async (event) => {
+    const files = Array.from(event.target.files);
+    const mediaArray = files.map((file) => ({
+      name: file.name,
+      url: URL.createObjectURL(file),
+    }));
+    setMediaFiles(mediaArray);
+    await localforage.setItem('mediaFiles', mediaArray); // Save to localforage
+    setIsFileInputVisible(false); // Hide input after selection
   };
 
-  const handleOpenModal = () => {
+  const playMedia = (url) => {
+    setLocalMediaLink(url);
     setIsModalOpen(true);
-    setIsPlaying(true); // Auto-start playback when modal opens
+    setIsPlaying(true);
   };
 
   const handleCloseModal = () => {
     setIsModalOpen(false);
-    setIsPlaying(false); // Pause when modal closes
+    setIsPlaying(false);
+    setLocalMediaLink(null);
   };
-
-  const currentLink = localMediaLink || mediaLink;
-
-  useEffect(() => {
-    if (isModalOpen) {
-      setIsPlaying(true); // Ensure autoplay when modal is open
-    }
-  }, [isModalOpen]);
 
   return (
     <div className="mt-4">
-      <input
-        type="file"
-        accept="video/mp4, audio/*"
-        onChange={handleFileInput}
-        className="mb-4"
-      />
+      {/* File input (only shown once) */}
+      {isFileInputVisible && (
+        <input
+          type="file"
+          accept="video/mp4, audio/*"
+          multiple
+          onChange={handleFileInput}
+          className="mb-4"
+        />
+      )}
 
-      <button
-        onClick={handleOpenModal}
-        className="bg-green-500 text-white px-4 py-2 rounded-lg"
-      >
-        Open Media Player
-      </button>
+      {/* Buttons for selected files */}
+      <div className="grid grid-cols-2 gap-4 mb-4">
+        {mediaFiles.map((file, index) => (
+          <button
+            key={index}
+            onClick={() => playMedia(file.url)}
+            className="bg-green-500 text-white px-4 py-2 rounded-lg"
+          >
+            {file.name}
+          </button>
+        ))}
+      </div>
 
       {/* Modal */}
       {isModalOpen && (
@@ -61,10 +83,10 @@ const MediaPlayer = ({ mediaLink }) => {
               ✕
             </button>
 
-            {currentLink ? (
+            {localMediaLink ? (
               <ReactPlayer
                 ref={playerRef}
-                url={currentLink}
+                url={localMediaLink}
                 playing={isPlaying}
                 controls
                 width="100%"
@@ -74,23 +96,21 @@ const MediaPlayer = ({ mediaLink }) => {
               <p className="text-gray-500">No media selected or invalid link.</p>
             )}
 
-            {currentLink && (
-              <div className="flex justify-end mt-4">
-                <button
-                  onClick={() => setIsPlaying(!isPlaying)}
-                  className="mr-4 bg-blue-500 text-white px-4 py-2 rounded-lg"
-                >
-                  {isPlaying ? 'Pause' : 'Play'}
-                </button>
+            <div className="flex justify-end mt-4">
+              <button
+                onClick={() => setIsPlaying(!isPlaying)}
+                className="mr-4 bg-blue-500 text-white px-4 py-2 rounded-lg"
+              >
+                {isPlaying ? 'Pause' : 'Play'}
+              </button>
 
-                <button
-                  onClick={handleCloseModal}
-                  className="bg-red-500 text-white px-4 py-2 rounded-lg"
-                >
-                  Close
-                </button>
-              </div>
-            )}
+              <button
+                onClick={handleCloseModal}
+                className="bg-red-500 text-white px-4 py-2 rounded-lg"
+              >
+                Close
+              </button>
+            </div>
           </div>
         </div>
       )}

@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom'; // For routing to AddAndEditData
 import { openDB } from 'idb'; // Import idb library
-
+import { useMedia } from '../context/MediaContext';
 
 const DB_NAME = 'QuestionDB';
 const STORE_NAME = 'questionsStore';
@@ -12,7 +12,7 @@ const GameSetup = () => {
   const [setNo, setSetNo] = useState('1');
   const [questionNo, setQuestionNo] = useState(1);
   const navigate = useNavigate();
-
+  const { setMediaFiles } = useMedia();
   // Initialize IndexedDB and return the database instance
   const initDB = async () => {
     return openDB(DB_NAME, 1, {
@@ -23,6 +23,16 @@ const GameSetup = () => {
       },
     });
   };
+
+  const handleFileInput = (event) => {
+    const files = Array.from(event.target.files).map((file) => ({
+      name: file.name,
+      url: URL.createObjectURL(file),
+    }));
+    setMediaFiles(files); // Save files to MediaContext
+  };
+
+
 
   // Fetch question sets from IndexedDB
   const fetchQuestionSets = async () => {
@@ -69,7 +79,25 @@ const GameSetup = () => {
   return (
     <div className="p-4">
       <h1 className="text-xl font-bold mb-4">Game Setup</h1>
+     <>
+     <div className="p-4">
+      <h2>Select Media Files for the Game</h2>
+      <input
+        type="file"
+        accept="video/mp4, audio/*"
+        multiple
+        onChange={handleFileInput}
+        className="mb-4"
+      />
+    </div>
+     
+     </>
+     
+     
+     
+     
       <div className="mb-4 grid grid-cols-6 gap-4">
+
         <div className="flex flex-col items-start">
           <label className="text-sm font-semibold mb-1">Set No:</label>
           <input

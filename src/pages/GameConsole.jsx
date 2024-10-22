@@ -6,6 +6,7 @@ import { useLocation, useNavigate } from 'react-router-dom'; // Import useNaviga
 import Timer from '../components/Timer';
 import LifelineWindow from '../components/LifelineWindow'; // Import the LifelineWindow component
 import MediaPlayer from '../components/MediaPlayer';
+import { useMedia } from '../context/MediaContext';
 
 const GameConsole = () => {
   const location = useLocation();
@@ -18,6 +19,10 @@ const GameConsole = () => {
     phoneAFriend: false,
     askTheAudience: false,
   });
+  const { mediaFiles } = useMedia();
+  const [selectedMedia, setSelectedMedia] = useState(null);
+
+
 
   const toggleTimer = () => {
     setShowTimer(!showTimer); // Toggle between showing and hiding the timer
@@ -139,7 +144,7 @@ const GameConsole = () => {
           {askQuestion && currentQuestion && (
             <>
          { /*    <h3 className="text-xl font-bold mb-4">Question {currentQuestion['media link']}</h3>*/}
-            { currentQuestion['media link']!='a' &&( <MediaPlayer mediaLink={currentQuestion['media link']} />)}
+            {currentQuestion['media link'] && currentQuestion['media link']!='a'  &&( <MediaPlayer mediaLink={currentQuestion['media link']} qid={currentQuestion['ID']}  />)}
 
               <p className="text-2xl mb-6">{currentQuestion.question}</p>
               {optionsVisible && (
