@@ -129,7 +129,7 @@ const GameConsole = () => {
     `;
     styleSheet.insertRule(keyframes, styleSheet.cssRules.length);
   }, []);
-
+console.log('curent',currentQuestion)
   return (
     <div className="absolute top-0 left-0 w-screen h-screen bg-blue-1000 overflow-hidden flex">
       {/* Left + Center - Game Area (Takes 80% of the screen) */}
@@ -144,8 +144,7 @@ const GameConsole = () => {
           {askQuestion && currentQuestion && (
             <>
          { /*    <h3 className="text-xl font-bold mb-4">Question {currentQuestion['media link']}</h3>*/}
-            {currentQuestion['media link'] && currentQuestion['media link']!='a'  &&( <MediaPlayer mediaLink={currentQuestion['media link']} qid={currentQuestion['ID']}  />)}
-
+           
               <p className="text-2xl mb-6">{currentQuestion.question}</p>
               {optionsVisible && (
                 <div className="grid grid-cols-2 gap-4 w-full">
@@ -220,6 +219,11 @@ const GameConsole = () => {
         >
           Ask
         </button>
+
+        {currentQuestion && currentQuestion['media link']!='a'  &&( <MediaPlayer mediaLink={currentQuestion['media link']} qid={currentQuestion['ID']}  />)}
+       
+
+
         <button
           className="bg-blue-500 text-white p-4 rounded-lg"
           onClick={handleShowOptions}
