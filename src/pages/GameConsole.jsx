@@ -7,6 +7,19 @@ import Timer from '../components/Timer';
 import LifelineWindow from '../components/LifelineWindow'; // Import the LifelineWindow component
 import MediaPlayer from '../components/MediaPlayer';
 import { useMedia } from '../context/MediaContext';
+import rongSound from '../components/sounds/gameover.wav';
+import clapa from '../components/sounds/clap (a).mp3'
+import clapb from '../components/sounds/clap (b).mp3'
+import clapc from '../components/sounds/clap (c).mp3'
+import clapd from '../components/sounds/clap (d).mp3'
+import clape from '../components/sounds/clap (e).mp3'
+import clapf from '../components/sounds/clap (f).mp3'
+import clapg from '../components/sounds/clap (g).mp3'
+import claph from '../components/sounds/clap (h).mp3'
+import kbcAsk from '../components/sounds/kbc_5_newest.mp3'
+import suspA from '../components/sounds/suspense.wav';
+
+
 
 const GameConsole = () => {
   const location = useLocation();
@@ -21,7 +34,19 @@ const GameConsole = () => {
   });
   const { mediaFiles } = useMedia();
   const [selectedMedia, setSelectedMedia] = useState(null);
-
+  const rongSoundAudio = new Audio(rongSound);
+  const kbcAskAudio = new Audio(kbcAsk)
+  const suspenseAudio = new Audio(suspA)
+  const audioFiles = [
+    new Audio(clapa),
+    new Audio(clapb),
+    new Audio(clapc),
+    new Audio(clapd),
+    new Audio(clape),
+    new Audio(clapf),
+    new Audio(clapg),
+    new Audio(claph),
+  ];
 
 
   const toggleTimer = () => {
@@ -62,10 +87,13 @@ const GameConsole = () => {
       setCorrectAnswer(filteredQuestions[0].ans);
     }
   }, [filteredQuestions]);
-  console.log('consol',filteredQuestions)
+  console.log('consol', filteredQuestions)
 
   const handleAsk = () => {
-    setAskQuestion(true);
+    kbcAskAudio.play()
+    setTimeout(() => {
+      setAskQuestion(true); // Execute the next piece of code after 1 second
+    }, 3000); // 
   };
 
   const handleShowOptions = () => {
@@ -79,20 +107,44 @@ const GameConsole = () => {
   };
 
   const handleResult = () => {
+
+    const isCorrect = selectedAnswer?.toLowerCase() === currentQuestion.true_ans.toLowerCase();
+
+
     setShowResult(true);
     setResultVisible(true);
+    console.log('iscorre', isCorrect)
+    if (!isCorrect) {
+      rongSoundAudio.play().catch((error) => {
+        console.error("Failed to play sound:", error);
+      });
+    }
+    if (isCorrect) {
+      const randomIndex = Math.floor(Math.random() * audioFiles.length);
+      const randomAudio = audioFiles[randomIndex];
+
+      randomAudio.play().catch((error) => {
+        console.error("Failed to play sound:", error);
+      });
+
+
+
+
+    }
+
+
   };
 
   const handleNext = () => {
     const nextIndex = currentQuestionIndex + 1;
-   
+
     if (nextIndex < filteredQuestions.length) {
-      console.log('handel next') 
+      console.log('handel next')
       setCurrentQuestionIndex(nextIndex);
 
       setCurrentQuestion(filteredQuestions[nextIndex]);
       setCorrectAnswer(filteredQuestions[nextIndex].answer);
-      console.log('f',filteredQuestions)
+      console.log('f', filteredQuestions)
       setSelectedAnswer(null); // Reset selected option
       setShowResult(false);
       setOptionsVisible(false);
@@ -100,6 +152,7 @@ const GameConsole = () => {
       setResultVisible(false);
       setAskQuestion(false);
       setIsLocked(false); // Reset lock state
+      handleAsk()
     } else {
       alert('No more questions in this set.');
     }
@@ -116,9 +169,13 @@ const GameConsole = () => {
   const blinkingStyle = {
     animation: 'blinking 1s infinite'
   };
+ 
+
+
 
   // Inject the keyframes for blinking animation
   useEffect(() => {
+    console.log('blinking')
     const styleSheet = document.styleSheets[0];
     const keyframes = `
       @keyframes blinking {
@@ -129,7 +186,7 @@ const GameConsole = () => {
     `;
     styleSheet.insertRule(keyframes, styleSheet.cssRules.length);
   }, []);
-console.log('curent',currentQuestion)
+  console.log('curent', currentQuestion)
   return (
     <div className="absolute top-0 left-0 w-screen h-screen bg-blue-1000 overflow-hidden flex">
       {/* Left + Center - Game Area (Takes 80% of the screen) */}
@@ -140,49 +197,49 @@ console.log('curent',currentQuestion)
       )}
       <div className="flex justify-center items-start  bg-gray-900 w-4/5 h-full p-8">
         {/* Top Aligned Question and Options */}
-        <div className=" absolute top-[15%] left-[1%] w-1/2 h-1/2 bg-gray-800 p-8 rounded-lg text-white">
+        <div className=" absolute top-[15%] left-[1%] w-3/4 h-1/2 bg-gray-800 p-8 rounded-lg text-white">
           {askQuestion && currentQuestion && (
             <>
-         { /*    <h3 className="text-xl font-bold mb-4">Question {currentQuestion['media link']}</h3>*/}
-           
+              { /*    <h3 className="text-xl font-bold mb-4">Question {currentQuestion['media link']}</h3>*/}
+
               <p className="text-2xl mb-6">{currentQuestion.question}</p>
               {optionsVisible && (
                 <div className="grid grid-cols-2 gap-4 w-full">
-                {['A', 'B', 'C', 'D'].map((label, idx) => {
-                  const option = currentQuestion[label]; // Access option using label (A, B, C, D)
-                  const correctOption = currentQuestion.true_ans.toLowerCase(); // The correct option (e.g., 'a', 'b', etc.)
-                  const isCorrect = label.toLowerCase() === correctOption; // Check if the current option is the correct one
-                  const isSelected = label.toLowerCase() === selectedAnswer?.toLowerCase(); // Check if this option is selected
-              
-                  let bgColor = 'bg-gray-200 text-black'; // Default background
-                  let appliedStyle = {}; // This will store the blinking or default styles
-              
-                  if (showResult) {
-                    if (isCorrect) bgColor = 'bg-green-500 text-white'; // Correct answer in green
-                    else if (isSelected && !isCorrect) bgColor = 'bg-red-500 text-white'; // Wrong selected answer in red
-                  } else if (isSelected) {
-                    bgColor = 'bg-blue-500 text-white'; // Highlight selected option in blue
-              
-                    // Apply the blinking effect only if the answer is not locked
-                    if (!isLocked) {
-                      appliedStyle = blinkingStyle;
+                  {['A', 'B', 'C', 'D'].map((label, idx) => {
+                    const option = currentQuestion[label]; // Access option using label (A, B, C, D)
+                    const correctOption = currentQuestion.true_ans.toLowerCase(); // The correct option (e.g., 'a', 'b', etc.)
+                    const isCorrect = label.toLowerCase() === correctOption; // Check if the current option is the correct one
+                    const isSelected = label.toLowerCase() === selectedAnswer?.toLowerCase(); // Check if this option is selected
+
+                    let bgColor = 'bg-gray-200 text-black'; // Default background
+                    let appliedStyle = {}; // This will store the blinking or default styles
+
+                    if (showResult) {
+                      if (isCorrect) bgColor = 'bg-green-500 text-white'; // Correct answer in green
+                      else if (isSelected && !isCorrect) bgColor = 'bg-red-500 text-white'; // Wrong selected answer in red
+                    } else if (isSelected) {
+                      bgColor = 'bg-blue-500 text-white'; // Highlight selected option in blue
+
+                      // Apply the blinking effect only if the answer is not locked
+                      if (!isLocked) {
+                        appliedStyle = blinkingStyle;
+                      }
                     }
-                  }
-              
-                  return (
-                    <button
-                      key={idx}
-                      className={`p-4 rounded-lg ${bgColor}`}
-                      style={appliedStyle} // Apply blinking or default styles here
-                      onClick={() => setSelectedAnswer(label)} // Set the selected answer to the label (A, B, C, or D)
-                      disabled={showResult} // Disable buttons if result is shown
-                    >
-                      <span className="font-bold mr-2">{label}.</span> {option} {/* Display label (A, B, C, D) and option text */}
-                    </button>
-                  );
-                })}
-              </div>
-              
+
+                    return (
+                      <button
+                        key={idx}
+                        className={`p-4 rounded-lg ${bgColor}`}
+                        style={appliedStyle} // Apply blinking or default styles here
+                        onClick={() => setSelectedAnswer(label)} // Set the selected answer to the label (A, B, C, or D)
+                        disabled={showResult} // Disable buttons if result is shown
+                      >
+                        <span className="font-bold mr-2">{label}.</span> {option} {/* Display label (A, B, C, D) and option text */}
+                      </button>
+                    );
+                  })}
+                </div>
+
               )}
             </>
           )}
@@ -198,11 +255,10 @@ console.log('curent',currentQuestion)
             .map((amount, index) => (
               <li
                 key={index}
-                className={`${
-                  currentQuestionIndex === prizeMoney.length - 1 - index
-                    ? 'text-yellow-400 font-extrabold'
-                    : 'text-white'
-                }`}
+                className={`${currentQuestionIndex === prizeMoney.length - 1 - index
+                  ? 'text-yellow-400 font-extrabold'
+                  : 'text-white'
+                  }`}
               >
                 {prizeMoney.length - index}: {amount}
               </li>
@@ -219,10 +275,11 @@ console.log('curent',currentQuestion)
         >
           Ask
         </button>
+        <div className="w-10% h-5 "> {/* Adjust width and height */}
 
-        {currentQuestion && currentQuestion['media link']!='a'  &&( <MediaPlayer mediaLink={currentQuestion['media link']} qid={currentQuestion['ID']}  />)}
-       
+          {currentQuestion && currentQuestion['media link'] != 'a' && (<MediaPlayer mediaLink={currentQuestion['media link']} qid={currentQuestion['ID']} />)}
 
+        </div>
 
         <button
           className="bg-blue-500 text-white p-4 rounded-lg"
@@ -252,13 +309,13 @@ console.log('curent',currentQuestion)
         >
           Next
         </button>
-        <button 
-          className="bg-blue-500 text-white p-2 rounded-lg" 
+        <button
+          className="bg-blue-500 text-white p-2 rounded-lg"
           onClick={toggleTimer}
         >
           {showTimer ? 'Hide Timer' : 'Show Timer'}
         </button>
-        <button 
+        <button
           className="bg-orange-500 text-white p-2 rounded-lg"
           onClick={toggleLifelineWindow}
         >
