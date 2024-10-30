@@ -1,7 +1,8 @@
 import { useState, useEffect, useRef } from 'react';
+import { Howl } from 'howler';
 
-// You can import sound files or use URLs directly
-import startSound from './sounds/suspense.wav'; // Replace with the actual path to your sound file
+// Import or provide URLs for the audio files
+import startSound from './sounds/suspense.wav';
 import warningSound from './sounds/clock.wav';
 import endSound from './sounds/gameover.wav';
 
@@ -9,76 +10,82 @@ const Timer = () => {
   const [timeLeft, setTimeLeft] = useState(30); // Start the timer from 30 seconds
   const [isRunning, setIsRunning] = useState(true); // Track if the timer is running
 
-  // Create refs for audio elements to persist them across renders
-  const startAudioRef = useRef(new Audio(startSound));
-  const warningAudioRef = useRef(new Audio(warningSound));
-  const endAudioRef = useRef(new Audio(endSound));
+  // Store a ref to the currently playing sound
+  const currentAudioRef = useRef(null);
 
-  // Play the start sound once when the timer starts
+  // Helper function to stop the currently playing sound
+  const stopCurrentAudio = () => {
+    if (currentAudioRef.current) {
+      currentAudioRef.current.stop(); // Stop the current audio if it exists
+      currentAudioRef.current = null; // Clear the ref
+    }
+  };
+
+  // Initialize Howl instances for each sound
+  const startAudio = new Howl({ src: [startSound] });
+  const warningAudio = new Howl({ src: [warningSound] });
+  const endAudio = new Howl({ src: [endSound] });
+
+  // Play a sound and ensure no other sound plays simultaneously
+  const playAudio = (audio) => {
+    stopCurrentAudio(); // Stop any currently playing sound
+    audio.play(); // Play the new audio
+    currentAudioRef.current = audio; // Set the new audio as the current audio
+  };
+
+  // Play the start sound when the timer begins
   useEffect(() => {
     if (isRunning) {
-      startAudioRef.current.play();
+      playAudio(startAudio);
     }
   }, [isRunning]);
 
-  // Effect to handle the countdown
+  // Effect to manage countdown and play sounds at specific times
   useEffect(() => {
     let timerId;
 
     if (isRunning && timeLeft > 0) {
-      // Start a 1-second interval to update the timer
       timerId = setInterval(() => {
         setTimeLeft((prevTime) => prevTime - 1);
       }, 1000);
     }
 
-    // Play warning sound at 5 seconds left
+    // Play the warning sound when 5 seconds are left
     if (timeLeft === 5) {
-      warningAudioRef.current.play();
+      playAudio(warningAudio);
     }
 
-    // Play end sound at 0 seconds left
+    // Play the end sound when the timer reaches 0
     if (timeLeft === 0) {
-      endAudioRef.current.play();
+      playAudio(endAudio);
       clearInterval(timerId);
     }
 
-    return () => clearInterval(timerId); // Clear interval on component unmount or when timeLeft changes
+    return () => clearInterval(timerId); // Cleanup interval on unmount or timeLeft change
   }, [isRunning, timeLeft]);
 
-  // Function to stop all sounds
+  // Stop all sounds and reset audio when needed
   const stopAllSounds = () => {
-    // Stop the start, warning, and end sounds
-    startAudioRef.current.pause();
-    warningAudioRef.current.pause();
-    endAudioRef.current.pause();
-
-    // Reset the current time of all audio elements
-    startAudioRef.current.currentTime = 0;
-    warningAudioRef.current.currentTime = 0;
-    endAudioRef.current.currentTime = 0;
+    stopCurrentAudio(); // Stop any currently playing sound
   };
 
-  // Handle timer click to stop both the timer and all sounds
+  // Handle timer click to stop both the timer and sounds
   const handleTimerClick = () => {
     setIsRunning(false);
     stopAllSounds();
   };
 
-  // Cleanup effect to stop sounds when the component is unmounted
+  // Cleanup sounds when the component unmounts
   useEffect(() => {
-    return () => {
-      // This will run when the component is unmounted (e.g., hidden)
-      stopAllSounds();
-    };
+    return () => stopAllSounds();
   }, []);
 
-  // Format the time to show two digits (e.g., 09 instead of 9)
+  // Format the time to always show two digits (e.g., 09 instead of 9)
   const formatTime = (time) => (time < 10 ? `0${time}` : time);
 
   return (
     <div
-      className="relative flex items-center justify-center bg-lightblue text-white rounded-full w-16 h-16 text-6xl font-bold" // Increased w, h, and added text-4xl for larger font
+      className="relative flex items-center justify-center bg-lightblue text-white rounded-full w-20 h-20 text-6xl font-bold" // Adjusted size and font
       onClick={handleTimerClick}
       style={{ cursor: 'pointer' }} // Pointer cursor to indicate it's clickable
     >

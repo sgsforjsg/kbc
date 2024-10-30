@@ -7,6 +7,8 @@ import Timer from '../components/Timer';
 import LifelineWindow from '../components/LifelineWindow'; // Import the LifelineWindow component
 import MediaPlayer from '../components/MediaPlayer';
 import { useMedia } from '../context/MediaContext';
+import { Howl, Howler } from 'howler';  // Import Howler.js
+
 import rongSound from '../components/sounds/gameover.wav';
 import clapa from '../components/sounds/clap (a).mp3'
 import clapb from '../components/sounds/clap (b).mp3'
@@ -32,21 +34,31 @@ const GameConsole = () => {
     phoneAFriend: false,
     askTheAudience: false,
   });
-  const { mediaFiles } = useMedia();
-  const [selectedMedia, setSelectedMedia] = useState(null);
-  const rongSoundAudio = new Audio(rongSound);
-  const kbcAskAudio = new Audio(kbcAsk)
-  const suspenseAudio = new Audio(suspA)
-  const audioFiles = [
-    new Audio(clapa),
-    new Audio(clapb),
-    new Audio(clapc),
-    new Audio(clapd),
-    new Audio(clape),
-    new Audio(clapf),
-    new Audio(clapg),
-    new Audio(claph),
-  ];
+
+
+
+ // Initialize Howl instances for sounds
+ const rongSoundAudio = new Howl({ src: [rongSound] });
+ const kbcAskAudio = new Howl({ src: [kbcAsk] });
+ const suspenseAudio = new Howl({ src: [suspA] });
+
+ const audioFiles = [
+   new Howl({ src: [clapa] }),
+   new Howl({ src: [clapb] }),
+   new Howl({ src: [clapc] }),
+   new Howl({ src: [clapd] }),
+   new Howl({ src: [clape] }),
+   new Howl({ src: [clapf] }),
+   new Howl({ src: [clapg] }),
+   new Howl({ src: [claph] }),
+ ];
+  
+ const stopAllAudio = () => {
+  console.log('Stopping all audio');
+  Howler.stop();  // Stop all playing sounds using Howler's global control
+};
+
+
 
 
   const toggleTimer = () => {
@@ -122,7 +134,7 @@ const GameConsole = () => {
     if (isCorrect) {
       const randomIndex = Math.floor(Math.random() * audioFiles.length);
       const randomAudio = audioFiles[randomIndex];
-
+      stopAllAudio()
       randomAudio.play().catch((error) => {
         console.error("Failed to play sound:", error);
       });
@@ -287,6 +299,11 @@ const GameConsole = () => {
           disabled={!askQuestion || optionsVisible}
         >
           Show
+        </button>
+
+        <button className="bg-blue-500 text-white p-4 rounded-lg"
+          onClick={stopAllAudio} >
+            Stop Music
         </button>
         <button
           className="bg-red-500 text-white p-4 rounded-lg"
