@@ -1,34 +1,33 @@
 import { useState, useEffect } from 'react';
 import { ref, set, update } from 'firebase/database';
 import { doc, updateDoc, collection } from 'firebase/firestore';
-import { db1 } from '../firebase'; // Import your Firestore setup
-import { useLocation, useNavigate } from 'react-router-dom'; // Import useNavigate
+import { db1 } from '../firebase';
+import { useLocation, useNavigate } from 'react-router-dom';
 import Timer from '../components/Timer';
-import LifelineWindow from '../components/LifelineWindow'; // Import the LifelineWindow component
+import LifelineWindow from '../components/LifelineWindow';
 import MediaPlayer from '../components/MediaPlayer';
 import { useMedia } from '../context/MediaContext';
-import { Howl, Howler } from 'howler';  // Import Howler.js
+import { Howl, Howler } from 'howler';
+import WinningPopup from './WinningPopup';
 
 import rongSound from '../components/sounds/gameover.wav';
-import clapa from '../components/sounds/clap (a).mp3'
-import clapb from '../components/sounds/clap (b).mp3'
-import clapc from '../components/sounds/clap (c).mp3'
-import clapd from '../components/sounds/clap (d).mp3'
-import clape from '../components/sounds/clap (e).mp3'
-import clapf from '../components/sounds/clap (f).mp3'
-import clapg from '../components/sounds/clap (g).mp3'
-import claph from '../components/sounds/clap (h).mp3'
-import kbcAsk from '../components/sounds/kbc_5_newest.mp3'
+import clapa from '../components/sounds/clap (a).mp3';
+import clapb from '../components/sounds/clap (b).mp3';
+import clapc from '../components/sounds/clap (c).mp3';
+import clapd from '../components/sounds/clap (d).mp3';
+import clape from '../components/sounds/clap (e).mp3';
+import clapf from '../components/sounds/clap (f).mp3';
+import clapg from '../components/sounds/clap (g).mp3';
+import claph from '../components/sounds/clap (h).mp3';
+import kbcAsk from '../components/sounds/kbc_5_newest.mp3';
 import suspA from '../components/sounds/suspense.wav';
-
-
 
 const GameConsole = () => {
   const location = useLocation();
-  const navigate = useNavigate(); // Initialize useNavigate
-  const { setNo, filteredQuestions } = location.state || {}; // Get setNo and filteredQuestions from location.state
-  const [showTimer, setShowTimer] = useState(false); // State to track the visibility of the timer
-  const [showLifelineWindow, setShowLifelineWindow] = useState(false); // State for showing/hiding lifeline window
+  const navigate = useNavigate();
+  const { setNo, filteredQuestions } = location.state || {};
+  const [showTimer, setShowTimer] = useState(false);
+  const [showLifelineWindow, setShowLifelineWindow] = useState(false);
   const [lifelines, setLifelines] = useState({
     fiftyFifty: false,
     phoneAFriend: false,
@@ -37,36 +36,31 @@ const GameConsole = () => {
 
 
 
- // Initialize Howl instances for sounds
- const rongSoundAudio = new Howl({ src: [rongSound] });
- const kbcAskAudio = new Howl({ src: [kbcAsk] });
- const suspenseAudio = new Howl({ src: [suspA] });
 
- const audioFiles = [
-   new Howl({ src: [clapa] }),
-   new Howl({ src: [clapb] }),
-   new Howl({ src: [clapc] }),
-   new Howl({ src: [clapd] }),
-   new Howl({ src: [clape] }),
-   new Howl({ src: [clapf] }),
-   new Howl({ src: [clapg] }),
-   new Howl({ src: [claph] }),
- ];
-  
- const stopAllAudio = () => {
-  console.log('Stopping all audio');
-  Howler.stop();  // Stop all playing sounds using Howler's global control
-};
+  const rongSoundAudio = new Howl({ src: [rongSound] });
+  const kbcAskAudio = new Howl({ src: [kbcAsk] });
+  const suspenseAudio = new Howl({ src: [suspA] });
+  const audioFiles = [
+    new Howl({ src: [clapa] }),
+    new Howl({ src: [clapb] }),
+    new Howl({ src: [clapc] }),
+    new Howl({ src: [clapd] }),
+    new Howl({ src: [clape] }),
+    new Howl({ src: [clapf] }),
+    new Howl({ src: [clapg] }),
+    new Howl({ src: [claph] }),
+  ];
 
-
-
+  const stopAllAudio = () => {
+    Howler.stop();
+  };
 
   const toggleTimer = () => {
-    setShowTimer(!showTimer); // Toggle between showing and hiding the timer
+    setShowTimer(!showTimer);
   };
 
   const toggleLifelineWindow = () => {
-    setShowLifelineWindow(!showLifelineWindow); // Toggle lifeline window
+    setShowLifelineWindow(!showLifelineWindow);
   };
 
   const handleLifelineClick = (lifeline) => {
@@ -74,8 +68,13 @@ const GameConsole = () => {
       ...prev,
       [lifeline]: true,
     }));
-  };
 
+    if (lifeline === 'fiftyFifty' && currentQuestion?.fiftyFifty) {
+      const optionsToHide = currentQuestion.fiftyFifty.split('').map(option => option.toUpperCase());
+      setHiddenOptions(optionsToHide);
+    }
+  };
+  const [hiddenOptions, setHiddenOptions] = useState([]);
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   const [currentQuestion, setCurrentQuestion] = useState(null);
   const [selectedAnswer, setSelectedAnswer] = useState(null);
@@ -85,27 +84,36 @@ const GameConsole = () => {
   const [optionsVisible, setOptionsVisible] = useState(false);
   const [lockVisible, setLockVisible] = useState(false);
   const [resultVisible, setResultVisible] = useState(false);
-  const [isLocked, setIsLocked] = useState(false); // To track if the answer is locked
+  const [isLocked, setIsLocked] = useState(false);
 
   const prizeMoney = [
     "₹1,000", "₹2,000", "₹3,000", "₹5,000", "₹10,000",
-    "₹20,000", "₹40,000", "₹80,000", "₹160,000", "₹320,000",
-    "₹500,000", "₹1,000,000", "₹3,000,000", "₹5,000,000", "₹10,000,000"
+    "₹20,000", "₹40,000", "₹80,000", "₹1,60,000", "₹3,20,000",
+    "₹6,40,000", "₹12,50,000", "₹25 Lakh", "₹50 Lakh", "₹ 1 Crore"
   ];
 
+useEffect(() => {
+  if (lifelines.fiftyFifty) {
+    console.log("50-50 lifeline has been activated!");
+  } else {
+    console.log("50-50 lifeline is inactive.");
+  }
+}, [lifelines.fiftyFifty]);
+
+ 
+ 
   useEffect(() => {
     if (filteredQuestions.length > 0) {
       setCurrentQuestion(filteredQuestions[0]);
       setCorrectAnswer(filteredQuestions[0].ans);
     }
   }, [filteredQuestions]);
-  console.log('consol', filteredQuestions)
 
   const handleAsk = () => {
-    kbcAskAudio.play()
+    kbcAskAudio.play();
     setTimeout(() => {
-      setAskQuestion(true); // Execute the next piece of code after 1 second
-    }, 3000); // 
+      setAskQuestion(true);
+    }, 3000);
   };
 
   const handleShowOptions = () => {
@@ -115,79 +123,56 @@ const GameConsole = () => {
   const handleLockAnswer = () => {
     if (!selectedAnswer) return;
     setLockVisible(true);
-    setIsLocked(true); // Stop blinking when locked
+    setIsLocked(true);
   };
 
   const handleResult = () => {
-
     const isCorrect = selectedAnswer?.toLowerCase() === currentQuestion.true_ans.toLowerCase();
-
-
     setShowResult(true);
     setResultVisible(true);
-    console.log('iscorre', isCorrect)
+
     if (!isCorrect) {
-      rongSoundAudio.play().catch((error) => {
-        console.error("Failed to play sound:", error);
-      });
-    }
-    if (isCorrect) {
+      rongSoundAudio.play()
+    } else {
       const randomIndex = Math.floor(Math.random() * audioFiles.length);
       const randomAudio = audioFiles[randomIndex];
-      stopAllAudio()
-      randomAudio.play().catch((error) => {
-        console.error("Failed to play sound:", error);
-      });
-
-
-
-
+      stopAllAudio();
+      openPopup();
+      randomAudio.play()
     }
-
-
   };
+
+
+  
 
   const handleNext = () => {
     const nextIndex = currentQuestionIndex + 1;
-
     if (nextIndex < filteredQuestions.length) {
-      console.log('handel next')
       setCurrentQuestionIndex(nextIndex);
-
       setCurrentQuestion(filteredQuestions[nextIndex]);
       setCorrectAnswer(filteredQuestions[nextIndex].answer);
-      console.log('f', filteredQuestions)
-      setSelectedAnswer(null); // Reset selected option
+      setSelectedAnswer(null);
       setShowResult(false);
       setOptionsVisible(false);
       setLockVisible(false);
       setResultVisible(false);
       setAskQuestion(false);
-      setIsLocked(false); // Reset lock state
-      handleAsk()
+      setIsLocked(false);
+      handleAsk();
+      setHiddenOptions([]);
     } else {
       alert('No more questions in this set.');
     }
   };
 
   const handleCloseGame = () => {
-    // Navigate back to the GameSetup screen
     navigate('/game');
   };
 
   const optionLabels = ['A', 'B', 'C', 'D'];
+  const blinkingStyle = { animation: 'blinking 1s infinite' };
 
-  // Inline style for the blinking effect
-  const blinkingStyle = {
-    animation: 'blinking 1s infinite'
-  };
- 
-
-
-
-  // Inject the keyframes for blinking animation
   useEffect(() => {
-    console.log('blinking')
     const styleSheet = document.styleSheets[0];
     const keyframes = `
       @keyframes blinking {
@@ -198,146 +183,163 @@ const GameConsole = () => {
     `;
     styleSheet.insertRule(keyframes, styleSheet.cssRules.length);
   }, []);
-  console.log('curent', currentQuestion)
+
+// winning  popup screen
+const [isPopupVisible, setIsPopupVisible] = useState(false);
+
+
+  const winningInfo = ` won ${prizeMoney[currentQuestionIndex]}!`;
+
+  const openPopup = () => setIsPopupVisible(true);
+  const closePopup = () => setIsPopupVisible(false);
+
+// popup code over
+console.log(prizeMoney[currentQuestionIndex])
+
   return (
     <div className="absolute top-0 left-0 w-screen h-screen bg-blue-1000 overflow-hidden flex">
-      {/* Left + Center - Game Area (Takes 80% of the screen) */}
       {showTimer && (
-        <div className="absolute top-10 left-[40%]">
+        <div className="absolute top-4 left-[40%]">
           <Timer />
         </div>
       )}
-      <div className="flex justify-center items-start  bg-gray-900 w-4/5 h-full p-8">
-        {/* Top Aligned Question and Options */}
-        <div className=" absolute top-[15%] left-[1%] w-3/4 h-1/2 bg-gray-800 p-8 rounded-lg text-white">
+      <div className="flex justify-center items-start bg-gray-900 w-4/5 h-full p-8">
+        <div className="absolute top-[15%] left-[1%] w-3/4 h-1/2 bg-gray-800 p-8 rounded-lg text-white">
           {askQuestion && currentQuestion && (
             <>
-              { /*    <h3 className="text-xl font-bold mb-4">Question {currentQuestion['media link']}</h3>*/}
-
               <p className="text-2xl mb-6">{currentQuestion.question}</p>
               {optionsVisible && (
                 <div className="grid grid-cols-2 gap-4 w-full">
                   {['A', 'B', 'C', 'D'].map((label, idx) => {
-                    const option = currentQuestion[label]; // Access option using label (A, B, C, D)
-                    const correctOption = currentQuestion.true_ans.toLowerCase(); // The correct option (e.g., 'a', 'b', etc.)
-                    const isCorrect = label.toLowerCase() === correctOption; // Check if the current option is the correct one
-                    const isSelected = label.toLowerCase() === selectedAnswer?.toLowerCase(); // Check if this option is selected
-
-                    let bgColor = 'bg-gray-200 text-black'; // Default background
-                    let appliedStyle = {}; // This will store the blinking or default styles
+                    const option = currentQuestion[label];
+                    const correctOption = currentQuestion.true_ans.toLowerCase();
+                    const isCorrect = label.toLowerCase() === correctOption;
+                    const isSelected = label.toLowerCase() === selectedAnswer?.toLowerCase();
+                    let bgColor = 'bg-gray-200 text-black';
+                    let appliedStyle = {};
 
                     if (showResult) {
-                      if (isCorrect) bgColor = 'bg-green-500 text-white'; // Correct answer in green
-                      else if (isSelected && !isCorrect) bgColor = 'bg-red-500 text-white'; // Wrong selected answer in red
+                      bgColor = isCorrect ? 'bg-green-500 text-white' : isSelected && !isCorrect ? 'bg-red-500 text-white' : bgColor;
                     } else if (isSelected) {
-                      bgColor = 'bg-blue-500 text-white'; // Highlight selected option in blue
-
-                      // Apply the blinking effect only if the answer is not locked
-                      if (!isLocked) {
-                        appliedStyle = blinkingStyle;
-                      }
+                      bgColor = 'bg-blue-500 text-white';
+                      if (!isLocked) appliedStyle = blinkingStyle;
                     }
 
                     return (
                       <button
                         key={idx}
                         className={`p-4 rounded-lg ${bgColor}`}
-                        style={appliedStyle} // Apply blinking or default styles here
-                        onClick={() => setSelectedAnswer(label)} // Set the selected answer to the label (A, B, C, or D)
-                        disabled={showResult} // Disable buttons if result is shown
+                        style={appliedStyle}
+                        onClick={() => setSelectedAnswer(label)}
+                        disabled={showResult}
                       >
-                        <span className="font-bold mr-2">{label}.</span> {option} {/* Display label (A, B, C, D) and option text */}
+                        <span className="font-bold mr-2">{label}.</span> {option}
                       </button>
                     );
                   })}
                 </div>
-
               )}
+{isPopupVisible && (
+        <WinningPopup onClose={closePopup} winningInfo={winningInfo} />
+        
+      )}
+
             </>
           )}
         </div>
       </div>
 
-      {/* Right Side - Prize Money Ladder (Takes 20% of the screen) */}
-      <div className="right-0 w-1/5 h-full bg-gray-800 mt-3 ">
-        <ul className="text-left space-y-3 text-lg font-semibold ml-5 text-white">
-          {prizeMoney
-            .slice()
-            .reverse()
-            .map((amount, index) => (
-              <li
-                key={index}
-                className={`${currentQuestionIndex === prizeMoney.length - 1 - index
-                  ? 'text-yellow-400 font-extrabold'
-                  : 'text-white'
-                  }`}
-              >
-                {prizeMoney.length - index}: {amount}
-              </li>
-            ))}
-        </ul>
+      <div className="right-0 w-1/5 h-full bg-gray-800 mt-3">
+      <ul className="text-left space-y-3 text-lg font-semibold ml-5 text-white">
+  {prizeMoney
+    .slice()
+    .reverse()
+    .map((amount, index) => {
+      const isCurrent = currentQuestionIndex === prizeMoney.length - 1 - index;
+      const isSpecialIndex = index === 5 || index === 10;
+      return (
+        <li
+          key={index}
+          className={`${isCurrent ? 'text-yellow-400 font-extrabold' : 'text-white'} ${
+            isSpecialIndex ? 'font-bold text-yellow-100  italic text-bright' : ''
+          }`}
+        >
+          {prizeMoney.length - index}: {amount}
+        </li>
+      );
+    })}
+</ul>
+
       </div>
 
-      {/* Bottom Buttons */}
       <div className="absolute bottom-8 left-0 right-0 flex justify-left space-x-4">
         <button
-          className="bg-blue-500 text-white p-4 rounded-lg"
+          className={`p-4 rounded-lg ${askQuestion ? 'bg-blue-500 text-white' : 'bg-gray-800 text-gray-400'}`}
           onClick={handleAsk}
           disabled={askQuestion}
         >
           Ask
         </button>
-        <div className="w-10% h-5 "> {/* Adjust width and height */}
 
-          {currentQuestion && currentQuestion['media link'] != 'a' && (<MediaPlayer mediaLink={currentQuestion['media link']} qid={currentQuestion['ID']} />)}
-
+        <div className="w-10% h-5">
+          {currentQuestion && currentQuestion['media link'] !== 'a' && (
+            <MediaPlayer mediaLink={currentQuestion['media link']} qid={currentQuestion['ID']} />
+          )}
         </div>
 
         <button
-          className="bg-blue-500 text-white p-4 rounded-lg"
+          className={`p-4 rounded-lg ${askQuestion && !optionsVisible ? 'bg-blue-500 text-white' : 'bg-gray-800 text-gray-400'}`}
           onClick={handleShowOptions}
           disabled={!askQuestion || optionsVisible}
         >
           Show
         </button>
 
-        <button className="bg-blue-500 text-white p-4 rounded-lg"
-          onClick={stopAllAudio} >
-            Stop Music
-        </button>
         <button
-          className="bg-red-500 text-white p-4 rounded-lg"
+          className={`p-4 rounded-lg bg-blue-500 text-white`}
+          onClick={stopAllAudio}
+        >
+          Stop Music
+        </button>
+
+        <button
+          className={`p-4 rounded-lg ${selectedAnswer && !lockVisible ? 'bg-red-500 text-white' : 'bg-gray-800 text-gray-400'}`}
           onClick={handleLockAnswer}
           disabled={!selectedAnswer || lockVisible}
         >
           Lock
         </button>
+
         <button
-          className="bg-green-500 text-white p-4 rounded-lg"
+          className={`p-4 rounded-lg ${lockVisible && !resultVisible ? 'bg-green-500 text-white' : 'bg-gray-800 text-gray-400'}`}
           onClick={handleResult}
           disabled={!lockVisible || resultVisible}
         >
           Result
         </button>
+
         <button
-          className="bg-purple-500 text-white p-4 rounded-lg"
+          className={`p-4 rounded-lg ${resultVisible ? 'bg-purple-500 text-white' : 'bg-gray-800 text-gray-400'}`}
           onClick={handleNext}
           disabled={!resultVisible}
         >
           Next
         </button>
+
         <button
-          className="bg-blue-500 text-white p-2 rounded-lg"
+          className={`p-2 rounded-lg ${showTimer ? 'bg-blue-500 text-white' : 'bg-gray-800 text-gray-400'}`}
           onClick={toggleTimer}
         >
           {showTimer ? 'Hide Timer' : 'Show Timer'}
         </button>
+
         <button
-          className="bg-orange-500 text-white p-2 rounded-lg"
+          className={`p-2 rounded-lg ${showLifelineWindow ? 'bg-orange-500 text-white' : 'bg-gray-800 text-gray-400'}`}
           onClick={toggleLifelineWindow}
         >
           {showLifelineWindow ? 'Hide Lifelines' : 'Show Lifelines'}
         </button>
+
         <button
           className="bg-gray-500 text-white p-4 rounded-lg"
           onClick={handleCloseGame}
@@ -346,12 +348,14 @@ const GameConsole = () => {
         </button>
       </div>
 
-      {/* Lifeline Window */}
       {showLifelineWindow && (
-        <LifelineWindow lifelines={lifelines} onLifelineClick={handleLifelineClick} />
+        <LifelineWindow
+          onLifelineClick={handleLifelineClick}
+          lifelines={lifelines}
+        />
       )}
     </div>
   );
-}
+};
 
 export default GameConsole;
