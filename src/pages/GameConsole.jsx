@@ -69,8 +69,8 @@ const GameConsole = () => {
       [lifeline]: true,
     }));
 
-    if (lifeline === 'fiftyFifty' && currentQuestion?.fiftyFifty) {
-      const optionsToHide = currentQuestion.fiftyFifty.split('').map(option => option.toUpperCase());
+    if (lifeline === 'fiftyFifty' && currentQuestion?.L5050) {
+      const optionsToHide = currentQuestion.L5050.split('').map(option => option.toUpperCase());
       setHiddenOptions(optionsToHide);
     }
   };
@@ -85,6 +85,7 @@ const GameConsole = () => {
   const [lockVisible, setLockVisible] = useState(false);
   const [resultVisible, setResultVisible] = useState(false);
   const [isLocked, setIsLocked] = useState(false);
+  const[wrongx,setWrongx]=useState(0)
 
   const prizeMoney = [
     "₹1,000", "₹2,000", "₹3,000", "₹5,000", "₹10,000",
@@ -132,7 +133,19 @@ useEffect(() => {
     setResultVisible(true);
 
     if (!isCorrect) {
+      if( currentQuestionIndex<4){
+        setWrongx(currentQuestionIndex);        
+      }
+      if( currentQuestionIndex>=4 && currentQuestionIndex<10 ){
+        setWrongx(currentQuestionIndex-4);        
+      }if( currentQuestionIndex>=10  ){
+        setWrongx(currentQuestionIndex-9);        
+      }
+
+
       rongSoundAudio.play()
+      setWrongx(0);
+      openPopup();
     } else {
       const randomIndex = Math.floor(Math.random() * audioFiles.length);
       const randomAudio = audioFiles[randomIndex];
@@ -188,7 +201,7 @@ useEffect(() => {
 const [isPopupVisible, setIsPopupVisible] = useState(false);
 
 
-  const winningInfo = ` won ${prizeMoney[currentQuestionIndex]}!`;
+  const winningInfo = ` won ${prizeMoney[currentQuestionIndex-wrongx]}!`;
 
   const openPopup = () => setIsPopupVisible(true);
   const closePopup = () => setIsPopupVisible(false);
@@ -209,37 +222,45 @@ console.log(prizeMoney[currentQuestionIndex])
             <>
               <p className="text-2xl mb-6">{currentQuestion.question}</p>
               {optionsVisible && (
-                <div className="grid grid-cols-2 gap-4 w-full">
-                  {['A', 'B', 'C', 'D'].map((label, idx) => {
-                    const option = currentQuestion[label];
-                    const correctOption = currentQuestion.true_ans.toLowerCase();
-                    const isCorrect = label.toLowerCase() === correctOption;
-                    const isSelected = label.toLowerCase() === selectedAnswer?.toLowerCase();
-                    let bgColor = 'bg-gray-200 text-black';
-                    let appliedStyle = {};
+  <div className="grid grid-cols-2 gap-4 w-full">
+    {['A', 'B', 'C', 'D'].map((label, idx) => {
+      // Skip this option if it is in the hiddenOptions array
+      if (hiddenOptions.includes(label)) {
+        return null; // Don't render this option
+      }
 
-                    if (showResult) {
-                      bgColor = isCorrect ? 'bg-green-500 text-white' : isSelected && !isCorrect ? 'bg-red-500 text-white' : bgColor;
-                    } else if (isSelected) {
-                      bgColor = 'bg-blue-500 text-white';
-                      if (!isLocked) appliedStyle = blinkingStyle;
-                    }
+      const option = currentQuestion[label];
+      const correctOption = currentQuestion.true_ans.toLowerCase();
+      console.log(currentQuestion.L5050,'050')
+      const isCorrect = label.toLowerCase() === correctOption;
+      const isSelected = label.toLowerCase() === selectedAnswer?.toLowerCase();
+      let bgColor = 'bg-gray-200 text-black';
+      let appliedStyle = {};
 
-                    return (
-                      <button
-                        key={idx}
-                        className={`p-4 rounded-lg ${bgColor}`}
-                        style={appliedStyle}
-                        onClick={() => setSelectedAnswer(label)}
-                        disabled={showResult}
-                      >
-                        <span className="font-bold mr-2">{label}.</span> {option}
-                      </button>
-                    );
-                  })}
-                </div>
-              )}
+      if (showResult) {
+        bgColor = isCorrect ? 'bg-green-500 text-white' : isSelected && !isCorrect ? 'bg-red-500 text-white' : bgColor;
+      } else if (isSelected) {
+        bgColor = 'bg-blue-500 text-white';
+        if (!isLocked) appliedStyle = blinkingStyle;
+      }
+
+      return (
+        <button
+          key={idx}
+          className={`p-4 rounded-lg ${bgColor}`}
+          style={appliedStyle}
+          onClick={() => setSelectedAnswer(label)}
+          disabled={showResult}
+        >
+          <span className="font-bold mr-2">{label}.</span> {option}
+        </button>
+      );
+    })}
+  </div>
+)}
+
 {isPopupVisible && (
+
         <WinningPopup onClose={closePopup} winningInfo={winningInfo} />
         
       )}
