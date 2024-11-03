@@ -30,7 +30,7 @@ const GameConsole = () => {
   const [showLifelineWindow, setShowLifelineWindow] = useState(false);
   const [lifelines, setLifelines] = useState({
     fiftyFifty: false,
-    phoneAFriend: false,
+    X2: false,
     askTheAudience: false,
   });
 
@@ -72,12 +72,23 @@ const GameConsole = () => {
     if (lifeline === 'fiftyFifty' && currentQuestion?.L5050) {
       const optionsToHide = currentQuestion.L5050.split('').map(option => option.toUpperCase());
       setHiddenOptions(optionsToHide);
+
     }
+    if (lifeline === "X2") {
+      setx2Status(true)
+      console.log('X2')
+    }
+
+
   };
   const [hiddenOptions, setHiddenOptions] = useState([]);
+  const [x2status,setx2Status]=useState(false)
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   const [currentQuestion, setCurrentQuestion] = useState(null);
   const [selectedAnswer, setSelectedAnswer] = useState(null);
+ 
+const [secondAnswer, setSecondAnswer] = useState(null); // Track the second selection (for X2 lifeline)
+
   const [showResult, setShowResult] = useState(false);
   const [correctAnswer, setCorrectAnswer] = useState(null);
   const [askQuestion, setAskQuestion] = useState(false);
@@ -85,7 +96,7 @@ const GameConsole = () => {
   const [lockVisible, setLockVisible] = useState(false);
   const [resultVisible, setResultVisible] = useState(false);
   const [isLocked, setIsLocked] = useState(false);
-  const[wrongx,setWrongx]=useState(0)
+  const [wrongx, setWrongx] = useState(0)
 
   const prizeMoney = [
     "₹1,000", "₹2,000", "₹3,000", "₹5,000", "₹10,000",
@@ -93,22 +104,34 @@ const GameConsole = () => {
     "₹6,40,000", "₹12,50,000", "₹25 Lakh", "₹50 Lakh", "₹ 1 Crore"
   ];
 
-useEffect(() => {
-  if (lifelines.fiftyFifty) {
-    console.log("50-50 lifeline has been activated!");
-  } else {
-    console.log("50-50 lifeline is inactive.");
-  }
-}, [lifelines.fiftyFifty]);
+  useEffect(() => {
+    if (lifelines.fiftyFifty) {
+      console.log("50-50 lifeline has been activated!");
+    } else {
+      console.log("50-50 lifeline is inactive.");
+    }
+    if (lifelines.X2) {
+      console.log("X2")
+    }
 
- 
- 
+  }, [lifelines.fiftyFifty, lifelines.X2]);
+
+
+
   useEffect(() => {
     if (filteredQuestions.length > 0) {
       setCurrentQuestion(filteredQuestions[0]);
       setCorrectAnswer(filteredQuestions[0].ans);
     }
   }, [filteredQuestions]);
+
+  const handleOptionSelect = (label) => {
+    if (!selectedAnswer) {
+      setSelectedAnswer(label); // First selection
+    } else if (x2status && !secondAnswer) {
+      setSecondAnswer(label); // Second selection if X2 is active
+    }
+  };
 
   const handleAsk = () => {
     kbcAskAudio.play();
@@ -133,13 +156,13 @@ useEffect(() => {
     setResultVisible(true);
 
     if (!isCorrect) {
-      if( currentQuestionIndex<4){
-        setWrongx(currentQuestionIndex);        
+      if (currentQuestionIndex < 4) {
+        setWrongx(currentQuestionIndex);
       }
-      if( currentQuestionIndex>=4 && currentQuestionIndex<10 ){
-        setWrongx(currentQuestionIndex-4);        
-      }if( currentQuestionIndex>=10  ){
-        setWrongx(currentQuestionIndex-9);        
+      if (currentQuestionIndex >= 4 && currentQuestionIndex < 10) {
+        setWrongx(currentQuestionIndex - 4);
+      } if (currentQuestionIndex >= 10) {
+        setWrongx(currentQuestionIndex - 9);
       }
 
 
@@ -156,7 +179,7 @@ useEffect(() => {
   };
 
 
-  
+
 
   const handleNext = () => {
     const nextIndex = currentQuestionIndex + 1;
@@ -165,6 +188,7 @@ useEffect(() => {
       setCurrentQuestion(filteredQuestions[nextIndex]);
       setCorrectAnswer(filteredQuestions[nextIndex].answer);
       setSelectedAnswer(null);
+      setSecondAnswer(null)
       setShowResult(false);
       setOptionsVisible(false);
       setLockVisible(false);
@@ -173,6 +197,7 @@ useEffect(() => {
       setIsLocked(false);
       handleAsk();
       setHiddenOptions([]);
+      setx2Status(false)
     } else {
       alert('No more questions in this set.');
     }
@@ -197,17 +222,17 @@ useEffect(() => {
     styleSheet.insertRule(keyframes, styleSheet.cssRules.length);
   }, []);
 
-// winning  popup screen
-const [isPopupVisible, setIsPopupVisible] = useState(false);
+  // winning  popup screen
+  const [isPopupVisible, setIsPopupVisible] = useState(false);
 
 
-  const winningInfo = ` won ${prizeMoney[currentQuestionIndex-wrongx]}!`;
+  const winningInfo = ` won ${prizeMoney[currentQuestionIndex - wrongx]}!`;
 
   const openPopup = () => setIsPopupVisible(true);
   const closePopup = () => setIsPopupVisible(false);
 
-// popup code over
-console.log(prizeMoney[currentQuestionIndex])
+  // popup code over
+  console.log(prizeMoney[currentQuestionIndex])
 
   return (
     <div className="absolute top-0 left-0 w-screen h-screen bg-blue-1000 overflow-hidden flex">
@@ -218,78 +243,74 @@ console.log(prizeMoney[currentQuestionIndex])
       )}
       <div className="flex justify-center items-start bg-gray-900 w-4/5 h-full p-8">
         <div className="absolute top-[15%] left-[1%] w-3/4 h-1/2 bg-gray-800 p-8 rounded-lg text-white">
-          {askQuestion && currentQuestion && (
-            <>
-              <p className="text-2xl mb-6">{currentQuestion.question}</p>
-              {optionsVisible && (
-  <div className="grid grid-cols-2 gap-4 w-full">
-    {['A', 'B', 'C', 'D'].map((label, idx) => {
-      // Skip this option if it is in the hiddenOptions array
-      if (hiddenOptions.includes(label)) {
-        return null; // Don't render this option
-      }
+        {askQuestion && currentQuestion && (
+    <>
+      <p className="text-2xl mb-6">{currentQuestion.question}</p>
+      {optionsVisible && (
+        <div className="grid grid-cols-2 gap-4 w-full">
+          {['A', 'B', 'C', 'D'].map((label, idx) => {
+            if (hiddenOptions.includes(label)) return null;
 
-      const option = currentQuestion[label];
-      const correctOption = currentQuestion.true_ans.toLowerCase();
-      console.log(currentQuestion.L5050,'050')
-      const isCorrect = label.toLowerCase() === correctOption;
-      const isSelected = label.toLowerCase() === selectedAnswer?.toLowerCase();
-      let bgColor = 'bg-gray-200 text-black';
-      let appliedStyle = {};
+            const option = currentQuestion[label];
+            const correctOption = currentQuestion.true_ans.toLowerCase();
+            const isCorrect = label.toLowerCase() === correctOption;
+            const isSelected = label.toLowerCase() === selectedAnswer?.toLowerCase() || label.toLowerCase() === secondAnswer?.toLowerCase();
+            
+            let bgColor = 'bg-gray-200 text-black';
+            let appliedStyle = {};
 
-      if (showResult) {
-        bgColor = isCorrect ? 'bg-green-500 text-white' : isSelected && !isCorrect ? 'bg-red-500 text-white' : bgColor;
-      } else if (isSelected) {
-        bgColor = 'bg-blue-500 text-white';
-        if (!isLocked) appliedStyle = blinkingStyle;
-      }
+            if (showResult) {
+              bgColor = isCorrect ? 'bg-green-500 text-white' : isSelected && !isCorrect ? 'bg-red-500 text-white' : bgColor;
+            } else if (isSelected) {
+              bgColor = 'bg-blue-500 text-white';
+              if (!isLocked) appliedStyle = blinkingStyle;
+            }
 
-      return (
-        <button
-          key={idx}
-          className={`p-4 rounded-lg ${bgColor}`}
-          style={appliedStyle}
-          onClick={() => setSelectedAnswer(label)}
-          disabled={showResult}
-        >
-          <span className="font-bold mr-2">{label}.</span> {option}
-        </button>
-      );
-    })}
-  </div>
-)}
+            // Disable button based on selected options and X2 status
+            const isDisabled = showResult || (!x2status && selectedAnswer) || (x2status && selectedAnswer && secondAnswer);
 
-{isPopupVisible && (
-
-        <WinningPopup onClose={closePopup} winningInfo={winningInfo} />
-        
+            return (
+              <button
+                key={idx}
+                className={`p-4 rounded-lg ${bgColor}`}
+                style={appliedStyle}
+                onClick={() => handleOptionSelect(label)}
+                disabled={isDisabled}
+              >
+                <span className="font-bold mr-2">{label}.</span> {option}
+              </button>
+            );
+          })}
+        </div>
       )}
 
-            </>
-          )}
+      {isPopupVisible && (
+        <WinningPopup onClose={closePopup} winningInfo={winningInfo} />
+      )}
+    </>
+  )}
         </div>
       </div>
 
       <div className="right-0 w-1/5 h-full bg-gray-800 mt-3">
-      <ul className="text-left space-y-3 text-lg font-semibold ml-5 text-white">
-  {prizeMoney
-    .slice()
-    .reverse()
-    .map((amount, index) => {
-      const isCurrent = currentQuestionIndex === prizeMoney.length - 1 - index;
-      const isSpecialIndex = index === 5 || index === 10;
-      return (
-        <li
-          key={index}
-          className={`${isCurrent ? 'text-yellow-400 font-extrabold' : 'text-white'} ${
-            isSpecialIndex ? 'font-bold text-yellow-100  italic text-bright' : ''
-          }`}
-        >
-          {prizeMoney.length - index}: {amount}
-        </li>
-      );
-    })}
-</ul>
+        <ul className="text-left space-y-3 text-lg font-semibold ml-5 text-white">
+          {prizeMoney
+            .slice()
+            .reverse()
+            .map((amount, index) => {
+              const isCurrent = currentQuestionIndex === prizeMoney.length - 1 - index;
+              const isSpecialIndex = index === 5 || index === 10;
+              return (
+                <li
+                  key={index}
+                  className={`${isCurrent ? 'text-yellow-400 font-extrabold' : 'text-white'} ${isSpecialIndex ? 'font-bold text-yellow-100  italic text-bright' : ''
+                    }`}
+                >
+                  {prizeMoney.length - index}: {amount}
+                </li>
+              );
+            })}
+        </ul>
 
       </div>
 
