@@ -99,7 +99,7 @@ const [secondAnswer, setSecondAnswer] = useState(null); // Track the second sele
   const [wrongx, setWrongx] = useState(0)
 
   const prizeMoney = [
-    "₹1,000", "₹2,000", "₹3,000", "₹5,000", "₹10,000",
+   "0", "₹1,000", "₹2,000", "₹3,000", "₹5,000", "₹10,000",
     "₹20,000", "₹40,000", "₹80,000", "₹1,60,000", "₹3,20,000",
     "₹6,40,000", "₹12,50,000", "₹25 Lakh", "₹50 Lakh", "₹ 1 Crore"
   ];
@@ -126,9 +126,9 @@ const [secondAnswer, setSecondAnswer] = useState(null); // Track the second sele
   }, [filteredQuestions]);
 
   const handleOptionSelect = (label) => {
-    if (!selectedAnswer) {
+    
       setSelectedAnswer(label); // First selection
-    } else if (x2status && !secondAnswer) {
+   if (x2status && !secondAnswer) {
       setSecondAnswer(label); // Second selection if X2 is active
     }
   };
@@ -151,8 +151,12 @@ const [secondAnswer, setSecondAnswer] = useState(null); // Track the second sele
   };
 
   const handleResult = () => {
-    const isCorrect = selectedAnswer?.toLowerCase() === currentQuestion.true_ans.toLowerCase();
-    setShowResult(true);
+   // const isCorrect = selectedAnswer?.toLowerCase() === currentQuestion.true_ans.toLowerCase();
+   const isCorrect = 
+  selectedAnswer?.toLowerCase() === currentQuestion.true_ans.toLowerCase() || 
+  secondAnswer?.toLowerCase() === currentQuestion.true_ans.toLowerCase();
+   
+   setShowResult(true);
     setResultVisible(true);
 
     if (!isCorrect) {
@@ -167,12 +171,13 @@ const [secondAnswer, setSecondAnswer] = useState(null); // Track the second sele
 
 
       rongSoundAudio.play()
-      setWrongx(0);
+     // setWrongx(0);
       openPopup();
     } else {
       const randomIndex = Math.floor(Math.random() * audioFiles.length);
       const randomAudio = audioFiles[randomIndex];
       stopAllAudio();
+      setWrongx(-1);
       openPopup();
       randomAudio.play()
     }
@@ -247,42 +252,50 @@ const [secondAnswer, setSecondAnswer] = useState(null); // Track the second sele
     <>
       <p className="text-2xl mb-6">{currentQuestion.question}</p>
       {optionsVisible && (
-        <div className="grid grid-cols-2 gap-4 w-full">
-          {['A', 'B', 'C', 'D'].map((label, idx) => {
-            if (hiddenOptions.includes(label)) return null;
+  <div className="grid grid-cols-2 gap-4 w-full">
+    {['A', 'B', 'C', 'D'].map((label, idx) => {
+      if (hiddenOptions.includes(label)) return null;
 
-            const option = currentQuestion[label];
-            const correctOption = currentQuestion.true_ans.toLowerCase();
-            const isCorrect = label.toLowerCase() === correctOption;
-            const isSelected = label.toLowerCase() === selectedAnswer?.toLowerCase() || label.toLowerCase() === secondAnswer?.toLowerCase();
-            
-            let bgColor = 'bg-gray-200 text-black';
-            let appliedStyle = {};
+      const option = currentQuestion[label];
+      const correctOption = currentQuestion.true_ans.toLowerCase();
+      const isCorrect = label.toLowerCase() === correctOption;
+      const isSelected =
+        label.toLowerCase() === selectedAnswer?.toLowerCase() || 
+        label.toLowerCase() === secondAnswer?.toLowerCase();
 
-            if (showResult) {
-              bgColor = isCorrect ? 'bg-green-500 text-white' : isSelected && !isCorrect ? 'bg-red-500 text-white' : bgColor;
-            } else if (isSelected) {
-              bgColor = 'bg-blue-500 text-white';
-              if (!isLocked) appliedStyle = blinkingStyle;
-            }
+      let bgColor = 'bg-gray-200 text-black';
+      let appliedStyle = {};
 
-            // Disable button based on selected options and X2 status
-            const isDisabled = showResult || (!x2status && selectedAnswer) || (x2status && selectedAnswer && secondAnswer);
+      if (showResult) {
+        bgColor = isCorrect 
+          ? 'bg-green-500 text-white' 
+          : isSelected && !isCorrect 
+          ? 'bg-red-500 text-white' 
+          : bgColor;
+      } else if (isSelected) {
+        bgColor = 'bg-blue-500 text-white';
+        if (!isLocked) appliedStyle = blinkingStyle;
+      }
 
-            return (
-              <button
-                key={idx}
-                className={`p-4 rounded-lg ${bgColor}`}
-                style={appliedStyle}
-                onClick={() => handleOptionSelect(label)}
-                disabled={isDisabled}
-              >
-                <span className="font-bold mr-2">{label}.</span> {option}
-              </button>
-            );
-          })}
-        </div>
-      )}
+      // Disable button if locked or selection criteria met
+      const isDisabled =  showResult 
+       
+
+      return (
+        <button
+          key={idx}
+          className={`p-4 rounded-lg ${bgColor}`}
+          style={appliedStyle}
+          onClick={() => handleOptionSelect(label)}
+          disabled={showResult}
+        >
+          <span className="font-bold mr-2">{label}.</span> {option}
+        </button>
+      );
+    })}
+  </div>
+)}
+
 
       {isPopupVisible && (
         <WinningPopup onClose={closePopup} winningInfo={winningInfo} />
@@ -298,7 +311,7 @@ const [secondAnswer, setSecondAnswer] = useState(null); // Track the second sele
             .slice()
             .reverse()
             .map((amount, index) => {
-              const isCurrent = currentQuestionIndex === prizeMoney.length - 1 - index;
+              const isCurrent = currentQuestionIndex === prizeMoney.length -2 - index;
               const isSpecialIndex = index === 5 || index === 10;
               return (
                 <li
@@ -306,7 +319,7 @@ const [secondAnswer, setSecondAnswer] = useState(null); // Track the second sele
                   className={`${isCurrent ? 'text-yellow-400 font-extrabold' : 'text-white'} ${isSpecialIndex ? 'font-bold text-yellow-100  italic text-bright' : ''
                     }`}
                 >
-                  {prizeMoney.length - index}: {amount}
+                  {prizeMoney.length - index-1}: {amount}
                 </li>
               );
             })}

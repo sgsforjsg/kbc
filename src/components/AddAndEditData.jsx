@@ -298,7 +298,83 @@ const clearIndexedDb = async () => {
                     className="block w-full mt-1 p-2 border border-gray-300 rounded"
                   />
                 </label>
-                <div className="grid grid-cols-4 gap-4 items-center">
+               
+                <div className="grid grid-cols-5 gap-4 items-center"> 
+                <label className="block">
+                    <span>A</span>
+                    <input
+                      type="text"
+                      value={record.A}
+                      onChange={(e) =>
+                        handleEdit(index + currentPage * pageSize, 'A', e.target.value)
+                      }
+                      className="block w-full mt-1 p-2 border border-gray-300 rounded"
+                    />
+                  </label>
+
+                  <label className="block">
+                    <span>B</span>
+                    <input
+                      type="text"
+                      value={record.B}
+                      onChange={(e) =>
+                        handleEdit(index + currentPage * pageSize, 'B', e.target.value)
+                      }
+                      className="block w-full mt-1 p-2 border border-gray-300 rounded"
+                    />
+                  </label>
+                  <label className="block">
+                    <span>C</span>
+                    <input
+                      type="text"
+                      value={record.C}
+                      onChange={(e) =>
+                        handleEdit(index + currentPage * pageSize, 'C', e.target.value)
+                      }
+                      className="block w-full mt-1 p-2 border border-gray-300 rounded"
+                    />
+                  </label>
+                  <label className="block">
+                    <span>D</span>
+                    <input
+                      type="text"
+                      value={record.D}
+                      onChange={(e) =>
+                        handleEdit(index + currentPage * pageSize, 'D', e.target.value)
+                      }
+                      className="block w-full mt-1 p-2 border border-gray-300 rounded"
+                    />
+                  </label>
+
+ <label className="block">
+                    <span>Ans</span>
+                    <input
+                      type="text"
+                      value={record.true_ans}
+                      onChange={(e) =>
+                        handleEdit(index + currentPage * pageSize, 'true_ans', e.target.value)
+                      }
+                      className="block w-full mt-1 p-2 border border-gray-300 rounded"
+                    />
+                  </label>
+                
+                </div>
+               
+                <div className="grid grid-cols-5 gap-4 items-center">
+
+                <label className="block">
+                    <span>ID:</span>
+                    <input
+                      type="text"
+                      value={record.ID}
+                      onChange={(e) =>
+                        handleEdit(index + currentPage * pageSize, 'ID', e.target.value)
+                      }
+                      className="block w-full mt-1 p-2 border border-gray-300 rounded"
+                    />
+                  </label>
+
+
                   <label className="block">
                     <span>Priority:</span>
                     <input

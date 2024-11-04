@@ -14,12 +14,15 @@ const WinningPopup = ({ onClose, winningInfo }) => {
       document.removeEventListener("keydown", handleKeyPress);
     };
   }, [onClose]);
-
+console.log(winningInfo,'win')
   return (
     <div className="fixed inset-0 bg-gray-500 bg-opacity-75 flex justify-center items-center z-50">
       <div className="bg-gray-950 p-8 rounded-lg shadow-lg animate-bounce-in">
-        <h2 className="text-2xl font-bold text-center mb-4">Congratulations!</h2>
-        <p className="text-lg text-center mb-4">{winningInfo}</p>
+      <h2 className="text-2xl font-bold text-center mb-4">
+  {winningInfo == ' won 0!' ? 'Consolation' : 'Congratulations!'}
+</h2>
+<p className="text-lg text-center mb-4">{winningInfo === ' won 0!' ? "Better luck next time!" : winningInfo}</p>
+
         <button 
           onClick={onClose} 
           className="bg-blue-500 hover:bg-blue-600 text-white font-semibold py-2 px-4 rounded mt-4 mx-auto block"
